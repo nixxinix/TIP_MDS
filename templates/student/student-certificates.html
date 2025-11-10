@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Certificates - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Student Portal</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:dashboard' %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:register' %}">
+                    <i class="fas fa-file-medical"></i>
+                    <span>New Student Form</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:update' %}">
+                    <i class="fas fa-edit"></i>
+                    <span>Update Information</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:appointments' %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:records' %}">
+                    <i class="fas fa-folder-open"></i>
+                    <span>My Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'students:certificates' %}">
+                    <i class="fas fa-certificate"></i>
+                    <span>Certificates</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">My Certificates & Prescriptions</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                {% if unread_notifications_count > 0 %}
+                <a href="{% url 'notifications:list' %}" class="notification-icon" style="position: relative; margin-right: 15px; color: #667eea; font-size: 20px;">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">{{ unread_notifications_count }}</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="table-container" style="margin-bottom: 30px;">
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-certificate"></i> Issued Certificates</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Certificate Number</th>
+                        <th>Title</th>
+                        <th>Purpose</th>
+                        <th>Date Issued</th>
+                        <th>Valid Until</th>
+                        <th>Doctor</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for certificate in certificates %}
+                    <tr>
+                        <td><strong>{{ certificate.certificate_number }}</strong></td>
+                        <td>{{ certificate.title }}</td>
+                        <td>{{ certificate.purpose|truncatewords:8|default:"N/A" }}</td>
+                        <td>{{ certificate.date_issued|date:"M d, Y" }}</td>
+                        <td>
+                            {% if certificate.valid_until %}
+                                {{ certificate.valid_until|date:"M d, Y" }}
+                            {% else %}
+                                <span style="color: #95a5a6;">No expiry</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ certificate.doctor.get_full_name|default:"N/A" }}</td>
+                        <td>
+                            {% if certificate.status == 'active' %}
+                            <span class="status-badge status-approved">Active</span>
+                            {% elif certificate.status == 'expired' %}
+                            <span class="status-badge status-declined">Expired</span>
+                            {% elif certificate.status == 'revoked' %}
+                            <span class="status-badge status-declined">Revoked</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if certificate.pdf_file %}
+                            <a href="{{ certificate.pdf_file.url }}" class="action-btn btn-view" target="_blank" download>
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                            {% else %}
+                            <span style="color: #95a5a6;">Not available</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: #95a5a6; padding: 30px;">
+                            <i class="fas fa-certificate" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                            No certificates issued yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-prescription"></i> E-Prescriptions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Prescription Number</th>
+                        <th>Diagnosis</th>
+                        <th>Date Issued</th>
+                        <th>Valid Until</th>
+                        <th>Doctor</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prescription in prescriptions %}
+                    <tr>
+                        <td><strong>{{ prescription.prescription_number }}</strong></td>
+                        <td>{{ prescription.diagnosis|truncatewords:10 }}</td>
+                        <td>{{ prescription.date_issued|date:"M d, Y" }}</td>
+                        <td>
+                            {% if prescription.valid_until %}
+                                {{ prescription.valid_until|date:"M d, Y" }}
+                            {% else %}
+                                <span style="color: #95a5a6;">No expiry</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ prescription.doctor.get_full_name|default:"N/A" }}</td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="showPrescriptionDetails('{{ prescription.id }}')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            {% if prescription.pdf_file %}
+                            <a href="{{ prescription.pdf_file.url }}" class="action-btn btn-approve" target="_blank" download>
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #95a5a6; padding: 30px;">
+                            <i class="fas fa-prescription" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                            No prescriptions issued yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if certificates or prescriptions %}
+        <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 20px; margin-top: 30px; border-radius: 6px;">
+            <h4 style="margin: 0 0 10px 0; color: #0d47a1;"><i class="fas fa-info-circle"></i> Important Notes</h4>
+            <ul style="margin: 10px 0 0 0; padding-left: 20px; color: #0d47a1;">
+                <li>Keep your certificates and prescriptions in a safe place</li>
+                <li>Check the validity period before using</li>
+                <li>Expired documents cannot be used for official purposes</li>
+                <li>If you need a new certificate, schedule an appointment with your doctor</li>
+                <li>Download and save PDF copies for your records</li>
+            </ul>
+        </div>
+        {% endif %}
+    </main>
+</div>
+
+<!-- Prescription Details Modal (Simple) -->
+<script>
+function showPrescriptionDetails(prescriptionId) {
+    // This is a placeholder - in production, you would fetch details via AJAX
+    alert('Prescription details for ID: ' + prescriptionId + '\n\nIn production, this would show a modal with full prescription details.');
+}
+</script>
+{% endblock %}

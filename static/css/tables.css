@@ -1,0 +1,240 @@
+/* Table Container */
+.table-container {
+    background: var(--bg-primary);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+}
+
+.table-container h3 {
+    font-size: 18px;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto; /* Allow table to adjust column widths */
+}
+
+thead {
+    background: var(--bg-secondary);
+}
+
+th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* Specific width for Actions column */
+th:last-child,
+td:last-child {
+    min-width: 100px;
+    width: 100px;
+    text-align: center;
+}
+
+td {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+tbody tr {
+    transition: background var(--transition-fast);
+}
+
+tbody tr:hover {
+    background: var(--bg-secondary);
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.status-pending {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.status-approved {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-declined {
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* Action Buttons Container */
+.action-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Action Buttons */
+.action-btn {
+    padding: 6px 12px !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+    transition: all var(--transition-fast) !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    min-width: fit-content !important;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important;
+}
+
+.action-btn i {
+    font-size: 11px !important;
+    display: inline-block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+}
+
+/* Button Colors */
+.btn-view {
+    background: #e3f2fd !important;
+    color: #1976d2 !important;
+    border: 1px solid #bbdefb !important;
+}
+
+.btn-view:hover {
+    background: #bbdefb !important;
+    border-color: #90caf9 !important;
+}
+
+.btn-approve {
+    background: #e8f5e9 !important;
+    color: #2e7d32 !important;
+    border: 1px solid #c8e6c9 !important;
+}
+
+.btn-approve:hover {
+    background: #c8e6c9 !important;
+    border-color: #a5d6a7 !important;
+}
+
+.btn-reject {
+    background: #ffebee !important;
+    color: #c62828 !important;
+    border: 1px solid #ffcdd2 !important;
+}
+
+.btn-reject:hover {
+    background: #ffcdd2 !important;
+    border-color: #ef9a9a !important;
+}
+
+.btn-edit {
+    background: #fff3e0 !important;
+    color: #e65100 !important;
+    border: 1px solid #ffe0b2 !important;
+}
+
+.btn-edit:hover {
+    background: #ffe0b2 !important;
+    border-color: #ffcc80 !important;
+}
+
+/* Empty State */
+.table-empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+}
+
+.table-empty i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.table-empty p {
+    font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    /* Allow buttons to wrap on smaller screens */
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+    
+    th:last-child,
+    td:last-child {
+        min-width: 180px;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+        padding: 15px;
+    }
+    
+    table {
+        min-width: 900px; /* Force horizontal scroll on mobile */
+    }
+    
+    th, td {
+        padding: 10px;
+        font-size: 12px;
+    }
+    
+    th:last-child,
+    td:last-child {
+        min-width: 160px;
+    }
+    
+    .action-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+        gap: 3px;
+    }
+    
+    .action-btn i {
+        font-size: 10px;
+    }
+}

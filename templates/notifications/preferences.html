@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notification Preferences - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>
+                        {% if user.role == 'student' %}Student Portal{% else %}Healthcare Management{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% if user.role == 'student' %}{% url 'students:dashboard' %}{% else %}{% url 'doctors:dashboard' %}{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'notifications:list' %}">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'notifications:preferences' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Preferences</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Notification Preferences</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <a href="{% url 'notifications:list' %}" class="btn-secondary" style="display: inline-block; padding: 10px 20px; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Back to Notifications
+            </a>
+        </div>
+
+        <div class="form-container">
+            <h3><i class="fas fa-bell"></i> Manage Your Notification Preferences</h3>
+            
+            <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 20px; margin: 20px 0; border-radius: 6px;">
+                <p style="margin: 0; color: #0d47a1;">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Note:</strong> Choose how you want to receive notifications. You can customize settings for both email and in-app notifications.
+                </p>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <h4 style="margin: 30px 0 15px; color: #667eea;">
+                    <i class="fas fa-envelope"></i> Email Notifications
+                </h4>
+                
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="email_appointment_approved" {% if preferences.email_appointment_approved %}checked{% endif %}>
+                        <span>Appointment approved - Receive email when your appointment is approved</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="email_appointment_reminder" {% if preferences.email_appointment_reminder %}checked{% endif %}>
+                        <span>Appointment reminders - Receive email reminders before appointments</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="email_request_status" {% if preferences.email_request_status %}checked{% endif %}>
+                        <span>Request status updates - Receive email when update requests are processed</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="email_certificate_issued" {% if preferences.email_certificate_issued %}checked{% endif %}>
+                        <span>Certificate issued - Receive email when certificates are issued</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="email_system_notifications" {% if preferences.email_system_notifications %}checked{% endif %}>
+                        <span>System notifications - Receive important system announcements via email</span>
+                    </label>
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">
+                    <i class="fas fa-bell"></i> In-App Notifications
+                </h4>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="inapp_appointment_updates" {% if preferences.inapp_appointment_updates %}checked{% endif %}>
+                        <span>Appointment updates - Show in-app notifications for appointment changes</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="inapp_request_updates" {% if preferences.inapp_request_updates %}checked{% endif %}>
+                        <span>Request updates - Show in-app notifications for request status changes</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" name="inapp_system_notifications" {% if preferences.inapp_system_notifications %}checked{% endif %}>
+                        <span>System notifications - Show system announcements in-app</span>
+                    </label>
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">
+                    <i class="fas fa-clock"></i> Reminder Settings
+                </h4>
+
+                <div class="form-group">
+                    <label>Appointment Reminder Time</label>
+                    <select name="appointment_reminder_hours" class="form-control" style="max-width: 300px;">
+                        <option value="1" {% if preferences.appointment_reminder_hours == 1 %}selected{% endif %}>1 hour before</option>
+                        <option value="2" {% if preferences.appointment_reminder_hours == 2 %}selected{% endif %}>2 hours before</option>
+                        <option value="6" {% if preferences.appointment_reminder_hours == 6 %}selected{% endif %}>6 hours before</option>
+                        <option value="12" {% if preferences.appointment_reminder_hours == 12 %}selected{% endif %}>12 hours before</option>
+                        <option value="24" {% if preferences.appointment_reminder_hours == 24 %}selected{% endif %}>24 hours before</option>
+                        <option value="48" {% if preferences.appointment_reminder_hours == 48 %}selected{% endif %}>48 hours before</option>
+                    </select>
+                    <small style="color: #7f8c8d;">Choose when to receive appointment reminders</small>
+                </div>
+
+                <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 25px 0; border-radius: 6px;">
+                    <p style="margin: 0; color: #856404;">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Important:</strong> Disabling critical notifications (like appointment approvals) may cause you to miss important updates about your healthcare.
+                    </p>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 40px;">
+                        <i class="fas fa-save"></i> Save Preferences
+                    </button>
+                    <a href="{% url 'notifications:list' %}" class="btn-secondary" style="text-decoration: none; display: inline-block;">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

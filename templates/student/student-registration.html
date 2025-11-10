@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}New Student Registration - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Student Portal</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:dashboard' %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'students:register' %}">
+                    <i class="fas fa-file-medical"></i>
+                    <span>New Student Form</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:update' %}">
+                    <i class="fas fa-edit"></i>
+                    <span>Update Information</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:appointments' %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:records' %}">
+                    <i class="fas fa-folder-open"></i>
+                    <span>My Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:certificates' %}">
+                    <i class="fas fa-certificate"></i>
+                    <span>Certificates</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">New Student Registration</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <h3><i class="fas fa-user-plus"></i> New Student Registration Form</h3>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <h4 style="margin: 20px 0 15px; color: #667eea;">Personal Information</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Student ID</label>
+                        {{ form.student_id }}
+                        {% if form.student_id.errors %}
+                            <small style="color: #dc3545;">{{ form.student_id.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name (Auto-filled)</label>
+                        <input type="text" class="form-control" value="{{ user.get_full_name }}" readonly style="background: #f0f0f0;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Program</label>
+                        {{ form.program }}
+                        {% if form.program.errors %}
+                            <small style="color: #dc3545;">{{ form.program.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Year Level</label>
+                        {{ form.year_level }}
+                        {% if form.year_level.errors %}
+                            <small style="color: #dc3545;">{{ form.year_level.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Birthdate</label>
+                        {{ form.date_of_birth }}
+                        {% if form.date_of_birth.errors %}
+                            <small style="color: #dc3545;">{{ form.date_of_birth.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Sex</label>
+                        {{ form.sex }}
+                        {% if form.sex.errors %}
+                            <small style="color: #dc3545;">{{ form.sex.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        {{ form.contact_number }}
+                        {% if form.contact_number.errors %}
+                            <small style="color: #dc3545;">{{ form.contact_number.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Email (Auto-filled)</label>
+                        <input type="email" class="form-control" value="{{ user.email }}" readonly style="background: #f0f0f0;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Address</label>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                        <small style="color: #dc3545;">{{ form.address.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Emergency Contact</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Emergency Contact Name</label>
+                        {{ form.emergency_contact_name }}
+                        {% if form.emergency_contact_name.errors %}
+                            <small style="color: #dc3545;">{{ form.emergency_contact_name.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Relationship</label>
+                        {{ form.emergency_contact_relationship }}
+                        {% if form.emergency_contact_relationship.errors %}
+                            <small style="color: #dc3545;">{{ form.emergency_contact_relationship.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Emergency Contact Number</label>
+                        {{ form.emergency_contact_number }}
+                        {% if form.emergency_contact_number.errors %}
+                            <small style="color: #dc3545;">{{ form.emergency_contact_number.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Emergency Contact Address</label>
+                        {{ form.emergency_contact_address }}
+                        {% if form.emergency_contact_address.errors %}
+                            <small style="color: #dc3545;">{{ form.emergency_contact_address.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Medical Information</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Height (cm)</label>
+                        {{ form.height_cm }}
+                        {% if form.height_cm.errors %}
+                            <small style="color: #dc3545;">{{ form.height_cm.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Weight (kg)</label>
+                        {{ form.weight_kg }}
+                        {% if form.weight_kg.errors %}
+                            <small style="color: #dc3545;">{{ form.weight_kg.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Blood Type</label>
+                        {{ form.blood_type }}
+                        {% if form.blood_type.errors %}
+                            <small style="color: #dc3545;">{{ form.blood_type.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Known Allergies</label>
+                    {{ form.allergies }}
+                    {% if form.allergies.errors %}
+                        <small style="color: #dc3545;">{{ form.allergies.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Current Medications</label>
+                    {{ form.current_medications }}
+                    {% if form.current_medications.errors %}
+                        <small style="color: #dc3545;">{{ form.current_medications.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Immunization History</label>
+                    {{ form.immunization_history }}
+                    {% if form.immunization_history.errors %}
+                        <small style="color: #dc3545;">{{ form.immunization_history.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Medical History</label>
+                    {{ form.medical_history }}
+                    {% if form.medical_history.errors %}
+                        <small style="color: #dc3545;">{{ form.medical_history.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Dental Information</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Last Dental Visit</label>
+                        {{ form.last_dental_visit }}
+                        {% if form.last_dental_visit.errors %}
+                            <small style="color: #dc3545;">{{ form.last_dental_visit.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Oral Habits</label>
+                        {{ form.oral_habits }}
+                        {% if form.oral_habits.errors %}
+                            <small style="color: #dc3545;">{{ form.oral_habits.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Dental History</label>
+                    {{ form.dental_history }}
+                    {% if form.dental_history.errors %}
+                        <small style="color: #dc3545;">{{ form.dental_history.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 40px;">
+                        <i class="fas fa-paper-plane"></i> Submit Registration
+                    </button>
+                    <button type="reset" class="btn-secondary">
+                        <i class="fas fa-redo"></i> Reset Form
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

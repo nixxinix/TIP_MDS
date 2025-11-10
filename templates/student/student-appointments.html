@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Appointments - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Student Portal</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:dashboard' %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:register' %}">
+                    <i class="fas fa-file-medical"></i>
+                    <span>New Student Form</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:update' %}">
+                    <i class="fas fa-edit"></i>
+                    <span>Update Information</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'students:appointments' %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:records' %}">
+                    <i class="fas fa-folder-open"></i>
+                    <span>My Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:certificates' %}">
+                    <i class="fas fa-certificate"></i>
+                    <span>Certificates</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">My Appointments</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                {% if unread_notifications_count > 0 %}
+                <a href="{% url 'notifications:list' %}" class="notification-icon" style="position: relative; margin-right: 15px; color: #667eea; font-size: 20px;">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">{{ unread_notifications_count }}</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container" style="margin-bottom: 25px;">
+            <h3><i class="fas fa-calendar-plus"></i> Request New Appointment</h3>
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Service Type</label>
+                        {{ form.service_type }}
+                        {% if form.service_type.errors %}
+                            <small style="color: #dc3545;">{{ form.service_type.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Preferred Date</label>
+                        {{ form.preferred_date }}
+                        {% if form.preferred_date.errors %}
+                            <small style="color: #dc3545;">{{ form.preferred_date.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Preferred Time Slot</label>
+                        {{ form.preferred_time_slot }}
+                        {% if form.preferred_time_slot.errors %}
+                            <small style="color: #dc3545;">{{ form.preferred_time_slot.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Reason for Appointment</label>
+                    {{ form.reason }}
+                    {% if form.reason.errors %}
+                        <small style="color: #dc3545;">{{ form.reason.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Emergency Contact Name</label>
+                        {{ form.emergency_contact_name }}
+                        {% if form.emergency_contact_name.errors %}
+                            <small style="color: #dc3545;">{{ form.emergency_contact_name.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Emergency Contact Number</label>
+                        {{ form.emergency_contact_number }}
+                        {% if form.emergency_contact_number.errors %}
+                            <small style="color: #dc3545;">{{ form.emergency_contact_number.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 40px;">
+                        <i class="fas fa-calendar-check"></i> Submit Request
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-container">
+            <h3 style="margin-bottom: 20px;">My Appointments</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticket Number</th>
+                        <th>Date</th>
+                        <th>Service</th>
+                        <th>Time Slot</th>
+                        <th>Doctor</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                    <tr>
+                        <td><strong>{{ appointment.ticket_number }}</strong></td>
+                        <td>{{ appointment.preferred_date|date:"M d, Y" }}</td>
+                        <td>{{ appointment.get_service_type_display }}</td>
+                        <td>{{ appointment.get_preferred_time_slot_display }}</td>
+                        <td>
+                            {% if appointment.doctor %}
+                                {{ appointment.doctor.get_full_name }}
+                            {% else %}
+                                <span style="color: #95a5a6;">Not assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if appointment.status == 'pending' %}
+                            <span class="status-badge status-pending">Pending</span>
+                            {% elif appointment.status == 'approved' %}
+                            <span class="status-badge status-approved">Approved</span>
+                            {% elif appointment.status == 'completed' %}
+                            <span class="status-badge status-approved">Completed</span>
+                            {% elif appointment.status == 'cancelled' %}
+                            <span class="status-badge status-declined">Cancelled</span>
+                            {% elif appointment.status == 'no_show' %}
+                            <span class="status-badge status-declined">No Show</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'students:appointment_detail' appointment.id %}" class="action-btn btn-view">View</a>
+                            {% if appointment.status in 'pending,approved' %}
+                            <a href="{% url 'students:cancel_appointment' appointment.id %}" class="action-btn btn-reject">Cancel</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #95a5a6; padding: 30px;">
+                            <i class="fas fa-calendar-times" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                            No appointments found. Book your first appointment above!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+{% endblock %}

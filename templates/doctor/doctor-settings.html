@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Settings - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">System Settings</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <h3><i class="fas fa-cog"></i> System Settings</h3>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'account-settings')">Account</button>
+                {% if user.is_admin_user %}
+                <button class="tab" onclick="switchTab(event, 'user-management')">User Management</button>
+                <button class="tab" onclick="switchTab(event, 'system-config')">System Configuration</button>
+                {% endif %}
+            </div>
+
+            <div id="account-settings" class="tab-content active">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="profile">
+                    
+                    <h4 style="margin: 20px 0 15px; color: #667eea;">Profile Information</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" value="{{ user.get_full_name }}" readonly style="background: #f0f0f0;">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" value="{{ user.email }}" readonly style="background: #f0f0f0;">
+                        </div>
+                    </div>
+
+                    {% if doctor_profile %}
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Specialization</label>
+                            <input type="text" class="form-control" value="{{ doctor_profile.get_specialization_display }}" readonly style="background: #f0f0f0;">
+                        </div>
+                        <div class="form-group">
+                            <label>License Number</label>
+                            <input type="text" class="form-control" value="{{ doctor_profile.license_number }}" readonly style="background: #f0f0f0;">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <h4 style="margin: 30px 0 15px; color: #667eea;">Change Password</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" name="current_password" class="form-control" placeholder="Enter current password">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" name="new_password" class="form-control" placeholder="Enter new password">
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" name="confirm_password" class="form-control" placeholder="Confirm new password">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 30px; margin-top: 20px;">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+
+            {% if user.is_admin_user %}
+            <div id="user-management" class="tab-content">
+                <div style="margin-bottom: 20px;">
+                    <button class="btn-primary" style="width: auto; padding: 10px 20px;">
+                        <i class="fas fa-user-plus"></i> Add New User
+                    </button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Date Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_item in users %}
+                        <tr>
+                            <td>{{ user_item.get_full_name }}</td>
+                            <td>{{ user_item.email }}</td>
+                            <td>
+                                {% if user_item.role == 'doctor' %}
+                                <span style="color: #2196f3;"><i class="fas fa-user-md"></i> Doctor</span>
+                                {% elif user_item.role == 'admin' %}
+                                <span style="color: #9c27b0;"><i class="fas fa-user-shield"></i> Admin</span>
+                                {% elif user_item.role == 'student' %}
+                                <span style="color: #4caf50;"><i class="fas fa-user-graduate"></i> Student</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user_item.is_active %}
+                                <span class="status-badge status-approved">Active</span>
+                                {% else %}
+                                <span class="status-badge status-declined">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user_item.date_joined|date:"M d, Y" }}</td>
+                            <td>
+                                <button class="action-btn btn-view">Edit</button>
+                                {% if user_item.is_active %}
+                                <button class="action-btn btn-reject">Deactivate</button>
+                                {% else %}
+                                <button class="action-btn btn-approve">Activate</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #95a5a6; padding: 30px;">
+                                No users found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="system-config" class="tab-content">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="system_config">
+                    
+                    <h4 style="margin: 20px 0 15px; color: #667eea;">Email Configuration</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>SMTP Host</label>
+                            <input type="text" name="smtp_host" class="form-control" value="smtp.gmail.com">
+                        </div>
+                        <div class="form-group">
+                            <label>SMTP Port</label>
+                            <input type="number" name="smtp_port" class="form-control" value="587">
+                        </div>
+                    </div>
+
+                    <h4 style="margin: 30px 0 15px; color: #667eea;">System Preferences</h4>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="email_notifications" checked>
+                            <span>Enable email notifications for pending requests</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="require_institutional_email" checked>
+                            <span>Require institutional email for student registration</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="two_factor_auth">
+                            <span>Enable two-factor authentication</span>
+                        </label>
+                    </div>
+
+                    <h4 style="margin: 30px 0 15px; color: #667eea;">Backup & Maintenance</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Last Backup</label>
+                            <input type="text" class="form-control" value="{{ today|date:'F d, Y h:i A' }}" readonly style="background: #f0f0f0;">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button type="button" class="btn-primary" style="width: auto; padding: 12px 20px;">
+                                <i class="fas fa-database"></i> Create Backup Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 30px; margin-top: 20px;">
+                        <i class="fas fa-save"></i> Save Configuration
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+
+<script>
+function switchTab(event, tabId) {
+    const container = event.target.closest('.form-container');
+    const tabContents = container.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    const tabs = container.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}

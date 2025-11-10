@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Medical Record - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Create Medical Record</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <a href="{% url 'doctors:search' %}?student_id={{ student_profile.student_id }}" class="btn-secondary" style="display: inline-block; padding: 10px 20px; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Back to Student Records
+            </a>
+        </div>
+
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+            <h4 style="margin: 0 0 15px 0;">Patient Information</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div>
+                    <strong>Student ID:</strong> {{ student_profile.student_id }}
+                </div>
+                <div>
+                    <strong>Name:</strong> {{ student_profile.user.get_full_name }}
+                </div>
+                <div>
+                    <strong>Program:</strong> {{ student_profile.get_program_display }}
+                </div>
+                <div>
+                    <strong>Year Level:</strong> {{ student_profile.get_year_level_display }}
+                </div>
+                <div>
+                    <strong>Age:</strong> {{ student_profile.get_age }} years
+                </div>
+                <div>
+                    <strong>Blood Type:</strong> {{ student_profile.get_blood_type_display }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <h3><i class="fas fa-notes-medical"></i> New Medical/Dental Record</h3>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <h4 style="margin: 20px 0 15px; color: #667eea;">Record Type</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Record Type <span style="color: #e74c3c;">*</span></label>
+                        {{ form.record_type }}
+                        {% if form.record_type.errors %}
+                            <small style="color: #dc3545;">{{ form.record_type.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Visit Date <span style="color: #e74c3c;">*</span></label>
+                        {{ form.visit_date }}
+                        {% if form.visit_date.errors %}
+                            <small style="color: #dc3545;">{{ form.visit_date.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Chief Complaint & Diagnosis</h4>
+                <div class="form-group">
+                    <label>Chief Complaint <span style="color: #e74c3c;">*</span></label>
+                    {{ form.chief_complaint }}
+                    {% if form.chief_complaint.errors %}
+                        <small style="color: #dc3545;">{{ form.chief_complaint.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Diagnosis <span style="color: #e74c3c;">*</span></label>
+                    {{ form.diagnosis }}
+                    {% if form.diagnosis.errors %}
+                        <small style="color: #dc3545;">{{ form.diagnosis.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Procedure Performed</label>
+                    {{ form.procedure }}
+                    {% if form.procedure.errors %}
+                        <small style="color: #dc3545;">{{ form.procedure.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Prescription</label>
+                    {{ form.prescription }}
+                    {% if form.prescription.errors %}
+                        <small style="color: #dc3545;">{{ form.prescription.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Vital Signs</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Blood Pressure</label>
+                        {{ form.blood_pressure }}
+                        {% if form.blood_pressure.errors %}
+                            <small style="color: #dc3545;">{{ form.blood_pressure.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Temperature (°C)</label>
+                        {{ form.temperature }}
+                        {% if form.temperature.errors %}
+                            <small style="color: #dc3545;">{{ form.temperature.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Pulse Rate (bpm)</label>
+                        {{ form.pulse_rate }}
+                        {% if form.pulse_rate.errors %}
+                            <small style="color: #dc3545;">{{ form.pulse_rate.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Respiratory Rate</label>
+                        {{ form.respiratory_rate }}
+                        {% if form.respiratory_rate.errors %}
+                            <small style="color: #dc3545;">{{ form.respiratory_rate.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Additional Information</h4>
+                <div class="form-group">
+                    <label>Remarks / Notes</label>
+                    {{ form.remarks }}
+                    {% if form.remarks.errors %}
+                        <small style="color: #dc3545;">{{ form.remarks.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Attachments</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Laboratory Results</label>
+                        {{ form.lab_results }}
+                        {% if form.lab_results.errors %}
+                            <small style="color: #dc3545;">{{ form.lab_results.errors.0 }}</small>
+                        {% endif %}
+                        <small style="color: #7f8c8d;">Upload lab test results (PDF, images)</small>
+                    </div>
+                    <div class="form-group">
+                        <label>X-ray / Dental Image</label>
+                        {{ form.xray_image }}
+                        {% if form.xray_image.errors %}
+                            <small style="color: #dc3545;">{{ form.xray_image.errors.0 }}</small>
+                        {% endif %}
+                        <small style="color: #7f8c8d;">Upload X-ray or dental images</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Other Attachments</label>
+                        {{ form.attachments }}
+                        {% if form.attachments.errors %}
+                            <small style="color: #dc3545;">{{ form.attachments.errors.0 }}</small>
+                        {% endif %}
+                        <small style="color: #7f8c8d;">Upload any other supporting documents</small>
+                    </div>
+                </div>
+
+                <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; margin: 25px 0; border-radius: 6px;">
+                    <p style="margin: 0; color: #2e7d32;">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Note:</strong> This record will be automatically approved and visible to the student upon creation.
+                    </p>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 40px;">
+                        <i class="fas fa-save"></i> Create Record
+                    </button>
+                    <a href="{% url 'doctors:search' %}?student_id={{ student_profile.student_id }}" class="btn-secondary" style="text-decoration: none; display: inline-block;">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

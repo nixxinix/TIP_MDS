@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Generate Medical Certificate - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Generate Medical Certificate</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <div style="margin-bottom: 20px;">
+                <a href="{% url 'doctors:templates' %}" class="btn-secondary" style="text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Back to Templates
+                </a>
+            </div>
+
+            <h3><i class="fas fa-certificate"></i> Medical Certificate Generation Form</h3>
+
+            <form method="POST" id="certificateForm">
+                {% csrf_token %}
+
+                <!-- Student Information -->
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                    <h4 style="color: #667eea; margin-bottom: 20px;"><i class="fas fa-user"></i> Student Information</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Student ID *</label>
+                            <input type="text" name="student_id" id="studentId" class="form-control" placeholder="e.g., 2310346" required>
+                            <button type="button" onclick="lookupStudent()" class="btn-primary" style="margin-top: 10px; width: auto; padding: 10px 20px;">
+                                <i class="fas fa-search"></i> Lookup Student
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="studentInfo" style="display: none; margin-top: 20px; padding: 20px; background: white; border-radius: 8px; border: 1px solid #e0e6ed;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" id="studentName" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Age</label>
+                                <input type="text" id="studentAge" class="form-control" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Sex</label>
+                                <input type="text" id="studentSex" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Course/Year</label>
+                                <input type="text" id="studentCourse" class="form-control" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Certificate Details -->
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                    <h4 style="color: #2196f3; margin-bottom: 20px;"><i class="fas fa-notes-medical"></i> Certificate Details</h4>
+                    
+                    <div class="form-group">
+                        <label>Illness/Condition *</label>
+                        <input type="text" name="diagnosis" class="form-control" placeholder="e.g., Upper Respiratory Tract Infection, Fever" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Rest From *</label>
+                            <input type="date" name="date_issued" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Rest Until *</label>
+                            <input type="date" name="valid_until" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Remarks/Recommendations</label>
+                        <textarea name="remarks" class="form-control" rows="4" placeholder="Additional remarks or doctor's recommendations"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Purpose of Certificate</label>
+                        <input type="text" name="purpose" class="form-control" placeholder="e.g., For medical excuse, For school requirements">
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div style="text-align: right;">
+                    <button type="submit" class="btn-primary" style="padding: 15px 40px; font-size: 16px;">
+                        <i class="fas fa-certificate"></i> Generate Medical Certificate
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+// Student Lookup
+async function lookupStudent() {
+    const studentId = document.getElementById('studentId').value.trim();
+    if (!studentId) {
+        alert('Please enter a Student ID');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/doctor/api/student-lookup/?student_id=${studentId}`);
+        const data = await response.json();
+
+        if (data.success) {
+            document.getElementById('studentName').value = data.student.name;
+            document.getElementById('studentAge').value = data.student.age;
+            document.getElementById('studentSex').value = data.student.sex;
+            document.getElementById('studentCourse').value = data.student.course;
+            document.getElementById('studentInfo').style.display = 'block';
+        } else {
+            alert(data.error || 'Student not found');
+            document.getElementById('studentInfo').style.display = 'none';
+        }
+    } catch (error) {
+        alert('Error looking up student');
+        console.error(error);
+    }
+}
+
+// Enter key on Student ID
+document.getElementById('studentId').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        lookupStudent();
+    }
+});
+
+// Set default dates (today and 3 days from now)
+const today = new Date().toISOString().split('T')[0];
+const threeDaysLater = new Date();
+threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+const restUntil = threeDaysLater.toISOString().split('T')[0];
+
+document.querySelector('[name="date_issued"]').value = today;
+document.querySelector('[name="valid_until"]').value = restUntil;
+</script>
+{% endblock %}

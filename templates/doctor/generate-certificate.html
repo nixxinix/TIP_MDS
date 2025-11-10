@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Generate Certificate - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Generate Certificate</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <a href="{% url 'doctors:templates' %}" class="btn-secondary" style="display: inline-block; padding: 10px 20px; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Back to Templates
+            </a>
+        </div>
+
+        <div class="form-container">
+            <h3><i class="fas fa-certificate"></i> Certificate Generation Form</h3>
+            <form method="POST">
+                {% csrf_token %}
+                
+                <h4 style="margin: 20px 0 15px; color: #667eea;">Student Information</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Student ID <span style="color: #e74c3c;">*</span></label>
+                        {{ form.student_id }}
+                        {% if form.student_id.errors %}
+                            <small style="color: #dc3545;">{{ form.student_id.errors.0 }}</small>
+                        {% endif %}
+                        <small style="color: #7f8c8d;">Enter the student ID to generate certificate for</small>
+                    </div>
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Certificate Details</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Certificate Title <span style="color: #e74c3c;">*</span></label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <small style="color: #dc3545;">{{ form.title.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Template</label>
+                        {{ form.template }}
+                        {% if form.template.errors %}
+                            <small style="color: #dc3545;">{{ form.template.errors.0 }}</small>
+                        {% endif %}
+                        <small style="color: #7f8c8d;">Select certificate template (optional)</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Purpose <span style="color: #e74c3c;">*</span></label>
+                    {{ form.purpose }}
+                    {% if form.purpose.errors %}
+                        <small style="color: #dc3545;">{{ form.purpose.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Diagnosis / Findings</label>
+                    {{ form.diagnosis }}
+                    {% if form.diagnosis.errors %}
+                        <small style="color: #dc3545;">{{ form.diagnosis.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Prescription / Treatment</label>
+                    {{ form.prescription }}
+                    {% if form.prescription.errors %}
+                        <small style="color: #dc3545;">{{ form.prescription.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Remarks / Additional Notes</label>
+                    {{ form.remarks }}
+                    {% if form.remarks.errors %}
+                        <small style="color: #dc3545;">{{ form.remarks.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Validity Period</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date Issued <span style="color: #e74c3c;">*</span></label>
+                        {{ form.date_issued }}
+                        {% if form.date_issued.errors %}
+                            <small style="color: #dc3545;">{{ form.date_issued.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Valid Until</label>
+                        {{ form.valid_until }}
+                        {% if form.valid_until.errors %}
+                            <small style="color: #dc3545;">{{ form.valid_until.errors.0 }}</small>
+                        {% endif %}
+                        <small style="color: #7f8c8d;">Leave blank if no expiry</small>
+                    </div>
+                </div>
+
+                <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 25px 0; border-radius: 6px;">
+                    <p style="margin: 0; color: #0d47a1;">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Note:</strong> A PDF certificate will be automatically generated and sent to the student via email notification.
+                    </p>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 40px;">
+                        <i class="fas fa-certificate"></i> Generate Certificate
+                    </button>
+                    <a href="{% url 'doctors:templates' %}" class="btn-secondary" style="text-decoration: none; display: inline-block;">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

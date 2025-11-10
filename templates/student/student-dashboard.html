@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Dashboard - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Student Portal</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'students:dashboard' %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'register' %}active{% endif %}" href="{% url 'students:register' %}">
+                    <i class="fas fa-file-medical"></i>
+                    <span>New Student Form</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'update' %}active{% endif %}" href="{% url 'students:update' %}">
+                    <i class="fas fa-edit"></i>
+                    <span>Update Information</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'appointments' %}active{% endif %}" href="{% url 'students:appointments' %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'records' %}active{% endif %}" href="{% url 'students:records' %}">
+                    <i class="fas fa-folder-open"></i>
+                    <span>My Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'certificates' %}active{% endif %}" href="{% url 'students:certificates' %}">
+                    <i class="fas fa-certificate"></i>
+                    <span>Certificates</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Student Portal</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                {% if unread_notifications_count > 0 %}
+                <a href="{% url 'notifications:list' %}" class="notification-icon" style="position: relative; margin-right: 15px; color: #667eea; font-size: 20px;">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">{{ unread_notifications_count }}</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="welcome-section">
+            <h2>Welcome to TIP Medical-Dental Services EMR</h2>
+            <p>Your comprehensive Electronic Medical Records system. Manage your health information, appointments, and medical data with ease and security.</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Total Records</h3>
+                    <div class="stat-number">{{ total_records }}</div>
+                </div>
+                <div class="stat-icon blue">
+                    <i class="fas fa-file-medical"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Appointments</h3>
+                    <div class="stat-number">{{ appointments_count }}</div>
+                </div>
+                <div class="stat-icon green">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Pending Requests</h3>
+                    <div class="stat-number">{{ pending_requests }}</div>
+                </div>
+                <div class="stat-icon orange">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Approved Records</h3>
+                    <div class="stat-number">{{ approved_records }}</div>
+                </div>
+                <div class="stat-icon purple">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="modules-section">
+            <h3>Quick Actions</h3>
+            <div class="modules-grid">
+                <div class="module-card blue" onclick="window.location.href='{% url 'students:register' %}'" style="cursor: pointer;">
+                    <div class="module-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <h4>New Student Registration</h4>
+                    <p>Register as a new student and submit initial medical and dental information</p>
+                </div>
+
+                <div class="module-card green" onclick="window.location.href='{% url 'students:update' %}'" style="cursor: pointer;">
+                    <div class="module-icon">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <h4>Update Information</h4>
+                    <p>Update your personal, medical, or dental information</p>
+                </div>
+
+                <div class="module-card cyan" onclick="window.location.href='{% url 'students:appointments' %}'" style="cursor: pointer;">
+                    <div class="module-icon">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <h4>Book Appointment</h4>
+                    <p>Schedule medical or dental appointments with our staff</p>
+                </div>
+            </div>
+        </div>
+
+        {% if recent_records %}
+        <div class="table-container" style="margin-top: 30px;">
+            <h3 style="margin-bottom: 20px;">Recent Records</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Diagnosis</th>
+                        <th>Doctor</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in recent_records %}
+                    <tr>
+                        <td>{{ record.visit_date|date:"M d, Y" }}</td>
+                        <td>{{ record.get_record_type_display }}</td>
+                        <td>{{ record.diagnosis|truncatewords:10 }}</td>
+                        <td>{{ record.doctor.get_full_name|default:"N/A" }}</td>
+                        <td>
+                            <a href="{% url 'students:record_detail' record.id %}" class="action-btn btn-view">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if upcoming_appointments %}
+        <div class="table-container" style="margin-top: 30px;">
+            <h3 style="margin-bottom: 20px;">Upcoming Appointments</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticket Number</th>
+                        <th>Date</th>
+                        <th>Service</th>
+                        <th>Time Slot</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in upcoming_appointments %}
+                    <tr>
+                        <td><strong>{{ appointment.ticket_number }}</strong></td>
+                        <td>{{ appointment.preferred_date|date:"M d, Y" }}</td>
+                        <td>{{ appointment.get_service_type_display }}</td>
+                        <td>{{ appointment.get_preferred_time_slot_display }}</td>
+                        <td>
+                            {% if appointment.status == 'pending' %}
+                            <span class="status-badge status-pending">Pending</span>
+                            {% elif appointment.status == 'approved' %}
+                            <span class="status-badge status-approved">Approved</span>
+                            {% elif appointment.status == 'completed' %}
+                            <span class="status-badge status-approved">Completed</span>
+                            {% elif appointment.status == 'cancelled' %}
+                            <span class="status-badge status-declined">Cancelled</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'students:appointment_detail' appointment.id %}" class="action-btn btn-view">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
