@@ -33,7 +33,7 @@ Before starting, make sure you have these files:
 
 ```bash
 git clone <repository-url>
-cd tip_mds_emr_backend
+cd tip_mds
 ```
 
 ### 2. Create and Activate Virtual Environment
