@@ -10,6 +10,7 @@ from django.views.generic import CreateView, TemplateView
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
+from django.utils import timezone
 
 from .models import User, UserProfile
 from .forms import UserRegistrationForm, UserLoginForm, UserProfileForm
@@ -209,3 +210,179 @@ def check_email_api(request):
         'available': not exists,
         'message': 'Email already registered' if exists else 'Email available'
     })
+
+
+from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import get_object_or_404
+from .forms import DoctorRegistrationForm
+
+
+# Admin check function
+def is_admin(user):
+    """Check if user is admin."""
+    return user.is_authenticated and user.is_admin_user()
+
+
+@login_required
+@user_passes_test(is_admin, login_url='doctors:dashboard')
+def user_management_view(request):
+    """
+    User management view - Admin only.
+    Shows all users (Admin, Doctor, Student).
+    """
+    # Get all users ordered by date joined (newest first)
+    all_users = User.objects.all().order_by('-date_joined')
+    
+    # Optional: Filter by role if requested
+    role_filter = request.GET.get('role', None)
+    if role_filter and role_filter in ['admin', 'doctor', 'student']:
+        all_users = all_users.filter(role=role_filter)
+    
+    context = {
+        'users': all_users,
+        'role_filter': role_filter,
+        'today': timezone.now()
+    }
+    
+    return render(request, 'accounts/user_management.html', context)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='doctors:dashboard')
+def add_user_view(request):
+    """
+    Add new doctor user - Admin only.
+    Auto-generates password and shows it to admin.
+    """
+    if request.method == 'POST':
+        form = DoctorRegistrationForm(request.POST)
+        
+        if form.is_valid():
+            user = form.save()
+            
+            # Get the generated password from the user object
+            temp_password = user.temp_password if hasattr(user, 'temp_password') else None
+            
+            if temp_password:
+                messages.success(
+                    request,
+                    f'Doctor account created successfully for {user.get_full_name()}! '
+                    f'Temporary Password: {temp_password} (Please save this and share securely with the doctor)'
+                )
+            else:
+                messages.success(
+                    request,
+                    f'Doctor account created successfully for {user.get_full_name()}!'
+                )
+            
+            return redirect('doctors:settings')
+        else:
+            messages.error(
+                request,
+                'Failed to create account. Please correct the errors below.'
+            )
+    else:
+        form = DoctorRegistrationForm()
+    
+    context = {
+        'form': form,
+        'today': timezone.now()
+    }
+    
+    return render(request, 'accounts/add_user.html', context)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='doctors:dashboard')
+def view_user_detail(request, user_id):
+    """
+    View user details - Admin only.
+    Shows user information and admin actions (deactivate, reset password).
+    """
+    user_obj = get_object_or_404(User, id=user_id)
+    profile = UserProfile.objects.filter(user=user_obj).first()
+    
+    context = {
+        'user_obj': user_obj,
+        'profile': profile,
+        'today': timezone.now()
+    }
+    
+    return render(request, 'accounts/view_user.html', context)
+
+
+@login_required
+@user_passes_test(is_admin, login_url='doctors:dashboard')
+def deactivate_user(request, user_id):
+    """
+    Deactivate or reactivate user account - Admin only.
+    Requires POST method for security.
+    """
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method.')
+        return redirect('doctors:settings')
+    
+    user_obj = get_object_or_404(User, id=user_id)
+    
+    # Prevent admin from deactivating themselves
+    if user_obj.id == request.user.id:
+        messages.error(request, 'You cannot deactivate your own account.')
+        return redirect('doctors:settings')
+    
+    # Toggle active status
+    if user_obj.is_active:
+        user_obj.is_active = False
+        action = 'deactivated'
+    else:
+        user_obj.is_active = True
+        action = 'activated'
+    
+    user_obj.save()
+    
+    messages.success(
+        request,
+        f'Account for {user_obj.get_full_name()} has been {action}.'
+    )
+    
+    return redirect('doctors:settings')
+
+
+@login_required
+@user_passes_test(is_admin, login_url='doctors:dashboard')
+def reset_user_password(request, user_id):
+    """
+    Reset user password - Admin only.
+    Generates a temporary password and requires POST method.
+    """
+    if request.method != 'POST':
+        messages.error(request, 'Invalid request method.')
+        return redirect('doctors:settings')
+    
+    user_obj = get_object_or_404(User, id=user_id)
+    
+    # Prevent admin from resetting their own password this way
+    if user_obj.id == request.user.id:
+        messages.error(
+            request,
+            'You cannot reset your own password. Use the Change Password form instead.'
+        )
+        return redirect('doctors:settings')
+    
+    # Generate temporary password (8 random characters)
+    import random
+    import string
+    temp_password = ''.join(
+        random.choices(string.ascii_letters + string.digits, k=12)
+    )
+    
+    # Set new password (hashed)
+    user_obj.set_password(temp_password)
+    user_obj.save()
+    
+    messages.success(
+        request,
+        f'Password reset successful for {user_obj.get_full_name()}. '
+        f'Temporary password: {temp_password} (Please save this and share securely)'
+    )
+    
+    return redirect('doctors:settings')

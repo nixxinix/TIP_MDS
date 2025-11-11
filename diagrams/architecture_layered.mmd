@@ -1,0 +1,86 @@
+graph TD
+    %% Layered Architecture - TIP MDS EMR
+
+    subgraph Layer1["🌐 CLIENT LAYER"]
+        Browser["Web Browser"]
+        Mobile["Mobile Device"]
+        API["API Clients"]
+    end
+
+    subgraph Layer2["🎨 PRESENTATION LAYER"]
+        Direction LR
+        Templates["Django Templates"]
+        Static["Static Files<br/>(WhiteNoise)"]
+        REST["REST API<br/>(DRF)"]
+    end
+
+    subgraph Layer3["🔒 SECURITY LAYER"]
+        AuthN["Authentication<br/>(Email Backend)"]
+        AuthZ["Authorization<br/>(Permissions)"]
+        CSRF2["CSRF/CORS"]
+    end
+
+    subgraph Layer4["💼 BUSINESS LOGIC LAYER"]
+        Direction LR
+        Accounts["Accounts"]
+        Students2["Students"]
+        Doctors2["Doctors"]
+        Appts["Appointments"]
+        Notifs["Notifications"]
+        Analytics2["Analytics"]
+        Docs["Templates/Docs"]
+    end
+
+    subgraph Layer5["🗄️ DATA ACCESS LAYER"]
+        ORM2["Django ORM"]
+        Models["Models<br/>(User, Student, Doctor, etc.)"]
+    end
+
+    subgraph Layer6["💾 DATABASE LAYER"]
+        SQLite["SQLite Database"]
+    end
+
+    subgraph Layer7["☁️ EXTERNAL SERVICES"]
+        Direction LR
+        SMTP["Email (SMTP)"]
+        PDFGen["PDF Generation<br/>(WeasyPrint)"]
+        Storage["File Storage"]
+    end
+
+    Browser --> Templates
+    Mobile --> Templates
+    API --> REST
+    Templates --> AuthN
+    Static --> Templates
+    REST --> AuthN
+    AuthN --> AuthZ
+    AuthZ --> CSRF2
+    CSRF2 --> Accounts
+    CSRF2 --> Students2
+    CSRF2 --> Doctors2
+    CSRF2 --> Appts
+    CSRF2 --> Notifs
+    CSRF2 --> Analytics2
+    CSRF2 --> Docs
+    Accounts --> ORM2
+    Students2 --> ORM2
+    Doctors2 --> ORM2
+    Appts --> ORM2
+    Notifs --> ORM2
+    Analytics2 --> ORM2
+    Docs --> ORM2
+    ORM2 --> Models
+    Models --> SQLite
+    Notifs --> SMTP
+    Docs --> PDFGen
+    Doctors2 --> PDFGen
+    Students2 --> Storage
+    Doctors2 --> Storage
+
+    classDef clientStyle fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef presentationStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef securityStyle fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef businessStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef dataStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef dbStyle fill:#ffebee,stroke:#b71c1c,stroke-width:2px
+    classDef externalStyle fill:#fff9c4,stroke:#f57f17,stroke-width:2px

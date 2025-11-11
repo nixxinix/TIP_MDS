@@ -1,7 +1,29 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Generate Medical Certificate - TIP MDS EMR{% endblock %}
+{% block title %}Generate E-Prescription - TIP MDS EMR{% endblock %}
+
+{% block extra_css %}
+<style>
+    .btn-remove {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .btn-add-medicine {
+        background: #27ae60;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="dashboard active">
@@ -66,7 +88,7 @@
 
     <main class="main-content">
         <div class="top-bar">
-            <h1 class="page-title">Generate Medical Certificate</h1>
+            <h1 class="page-title">Generate E-Prescription</h1>
             <div class="top-bar-right">
                 <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
                 <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
@@ -82,9 +104,9 @@
                 </a>
             </div>
 
-            <h3><i class="fas fa-certificate"></i> Medical Certificate Generation Form</h3>
+            <h3><i class="fas fa-prescription"></i> E-Prescription Generation Form</h3>
 
-            <form method="POST" id="certificateForm">
+            <form method="POST" id="prescriptionForm">
                 {% csrf_token %}
 
                 <!-- Student Information -->
@@ -125,41 +147,84 @@
                     </div>
                 </div>
 
-                <!-- Certificate Details -->
+                <!-- Diagnosis -->
                 <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
-                    <h4 style="color: #2196f3; margin-bottom: 20px;"><i class="fas fa-notes-medical"></i> Certificate Details</h4>
+                    <h4 style="color: #27ae60; margin-bottom: 20px;"><i class="fas fa-stethoscope"></i> Diagnosis</h4>
+                    <div class="form-group">
+                        <label>Diagnosis/Condition *</label>
+                        <textarea name="diagnosis" class="form-control" rows="3" placeholder="Enter diagnosis or medical condition" required></textarea>
+                    </div>
+                </div>
+
+                <!-- Prescription -->
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                    <h4 style="color: #2196f3; margin-bottom: 20px;"><i class="fas fa-pills"></i> Prescription (Rx)</h4>
                     
-                    <div class="form-group">
-                        <label>Illness/Condition *</label>
-                        <input type="text" name="diagnosis" class="form-control" placeholder="e.g., Upper Respiratory Tract Infection, Fever" required>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Rest From *</label>
-                            <input type="date" name="date_issued" class="form-control" required>
+                    <div id="medicineContainer">
+                        <div class="medicine-row" style="display: grid; grid-template-columns: 2fr 0.8fr 0.7fr 1fr auto; gap: 10px; margin-bottom: 15px; align-items: end;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Medicine Name *</label>
+                                <input type="text" class="form-control medicine-name" placeholder="e.g., Paracetamol 500mg" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Quantity *</label>
+                                <input type="number" class="form-control medicine-quantity" placeholder="1" min="1" value="1" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Unit *</label>
+                                <select class="form-control medicine-unit" required>
+                                    <option value="tab">tab</option>
+                                    <option value="caps">caps</option>
+                                    <option value="ml">ml</option>
+                                    <option value="mg">mg</option>
+                                    <option value="pc">pc</option>
+                                    <option value="pcs">pcs</option>
+                                    <option value="drops">drops</option>
+                                    <option value="tbsp">tbsp</option>
+                                    <option value="tsp">tsp</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Frequency *</label>
+                                <select class="form-control medicine-frequency" required>
+                                    <option value="1x a day">1x a day</option>
+                                    <option value="2x a day">2x a day</option>
+                                    <option value="3x a day">3x a day</option>
+                                    <option value="4x a day">4x a day</option>
+                                    <option value="Every 4 hours">Every 4 hours</option>
+                                    <option value="Every 6 hours">Every 6 hours</option>
+                                    <option value="Every 8 hours">Every 8 hours</option>
+                                    <option value="Before meals">Before meals</option>
+                                    <option value="After meals">After meals</option>
+                                    <option value="As needed">As needed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button type="button" class="btn-remove" onclick="removeMedicine(this)" style="display: none;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Rest Until *</label>
-                            <input type="date" name="valid_until" class="form-control" required>
-                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Remarks/Recommendations</label>
-                        <textarea name="remarks" class="form-control" rows="4" placeholder="Additional remarks or doctor's recommendations"></textarea>
-                    </div>
+                    <button type="button" class="btn-add-medicine" onclick="addMedicine()">
+                        <i class="fas fa-plus"></i> Add Medicine
+                    </button>
+                </div>
 
+                <!-- Instructions/Notes -->
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                    <h4 style="color: #ff9800; margin-bottom: 20px;"><i class="fas fa-notes-medical"></i> Instructions</h4>
                     <div class="form-group">
-                        <label>Purpose of Certificate</label>
-                        <input type="text" name="purpose" class="form-control" placeholder="e.g., For medical excuse, For school requirements">
+                        <label>Instructions/Remarks</label>
+                        <textarea name="instructions" class="form-control" rows="4" placeholder="Additional instructions or notes"></textarea>
                     </div>
                 </div>
 
                 <!-- Submit Button -->
                 <div style="text-align: right;">
                     <button type="submit" class="btn-primary" style="padding: 15px 40px; font-size: 16px;">
-                        <i class="fas fa-certificate"></i> Generate Medical Certificate
+                        <i class="fas fa-file-prescription"></i> Generate E-Prescription
                     </button>
                 </div>
             </form>
@@ -196,6 +261,94 @@ async function lookupStudent() {
     }
 }
 
+// Add Medicine Row
+function addMedicine() {
+    const container = document.getElementById('medicineContainer');
+    const newRow = document.createElement('div');
+    newRow.className = 'medicine-row';
+    newRow.style.cssText = 'display: grid; grid-template-columns: 2fr 0.8fr 0.7fr 1fr auto; gap: 10px; margin-bottom: 15px; align-items: end;';
+    newRow.innerHTML = `
+        <div class="form-group" style="margin-bottom: 0;">
+            <input type="text" class="form-control medicine-name" placeholder="e.g., Paracetamol 500mg" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <input type="number" class="form-control medicine-quantity" placeholder="1" min="1" value="1" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <select class="form-control medicine-unit" required>
+                <option value="tab">tab</option>
+                <option value="caps">caps</option>
+                <option value="ml">ml</option>
+                <option value="mg">mg</option>
+                <option value="pc">pc</option>
+                <option value="pcs">pcs</option>
+                <option value="drops">drops</option>
+                <option value="tbsp">tbsp</option>
+                <option value="tsp">tsp</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <select class="form-control medicine-frequency" required>
+                <option value="1x a day">1x a day</option>
+                <option value="2x a day">2x a day</option>
+                <option value="3x a day">3x a day</option>
+                <option value="4x a day">4x a day</option>
+                <option value="Every 4 hours">Every 4 hours</option>
+                <option value="Every 6 hours">Every 6 hours</option>
+                <option value="Every 8 hours">Every 8 hours</option>
+                <option value="Before meals">Before meals</option>
+                <option value="After meals">After meals</option>
+                <option value="As needed">As needed</option>
+            </select>
+        </div>
+        <div>
+            <button type="button" class="btn-remove" onclick="removeMedicine(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(newRow);
+    updateRemoveButtons();
+}
+
+// Remove Medicine Row
+function removeMedicine(button) {
+    button.closest('.medicine-row').remove();
+    updateRemoveButtons();
+}
+
+// Update Remove Buttons Visibility
+function updateRemoveButtons() {
+    const rows = document.querySelectorAll('.medicine-row');
+    rows.forEach((row, index) => {
+        const removeBtn = row.querySelector('.btn-remove');
+        if (rows.length > 1) {
+            removeBtn.style.display = 'block';
+        } else {
+            removeBtn.style.display = 'none';
+        }
+    });
+}
+
+// Form Submission - Collect Medicines
+document.getElementById('prescriptionForm').addEventListener('submit', function(e) {
+    const medicines = [];
+    document.querySelectorAll('.medicine-row').forEach(row => {
+        const name = row.querySelector('.medicine-name').value;
+        const quantity = row.querySelector('.medicine-quantity').value;
+        const unit = row.querySelector('.medicine-unit').value;
+        const frequency = row.querySelector('.medicine-frequency').value;
+        medicines.push(`${name} - ${quantity} ${unit} - ${frequency}`);
+    });
+    
+    // Create hidden input for medications
+    const medicationsInput = document.createElement('input');
+    medicationsInput.type = 'hidden';
+    medicationsInput.name = 'medications';
+    medicationsInput.value = medicines.join('\n');
+    this.appendChild(medicationsInput);
+});
+
 // Enter key on Student ID
 document.getElementById('studentId').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
@@ -203,14 +356,5 @@ document.getElementById('studentId').addEventListener('keypress', function(e) {
         lookupStudent();
     }
 });
-
-// Set default dates (today and 3 days from now)
-const today = new Date().toISOString().split('T')[0];
-const threeDaysLater = new Date();
-threeDaysLater.setDate(threeDaysLater.getDate() + 3);
-const restUntil = threeDaysLater.toISOString().split('T')[0];
-
-document.querySelector('[name="date_issued"]').value = today;
-document.querySelector('[name="valid_until"]').value = restUntil;
 </script>
 {% endblock %}

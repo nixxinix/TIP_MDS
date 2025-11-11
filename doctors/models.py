@@ -36,9 +36,11 @@ class DoctorProfile(models.Model):
         primary_key=True
     )
     
-    # Professional Information
+    # Professional Information (nullable for first-time login)
     license_number = models.CharField(
         max_length=50,
+        blank=True,
+        null=True,
         unique=True,
         help_text=_('Professional license number (PRC)')
     )
@@ -101,6 +103,20 @@ class DoctorProfile(models.Model):
         help_text=_('Whether doctor accepts new appointments')
     )
     
+    # Track profile completion
+    profile_completed = models.BooleanField(
+        default=False,
+        help_text=_('Whether doctor has completed their profile setup')
+    )
+    
+    # Track if this is first login
+    temp_password = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_('Temporary password for first login (plain text for display only)')
+    )
+    
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -121,3 +137,7 @@ class DoctorProfile(models.Model):
     def get_full_title(self):
         """Return doctor's name with title."""
         return f"Dr. {self.user.get_full_name()}"
+    
+    def is_profile_complete(self):
+        """Check if profile has required fields."""
+        return bool(self.license_number and self.specialization)

@@ -1,0 +1,132 @@
+graph TB
+    %% TIP MDS EMR - System Architecture
+
+    %% Actors/Users
+    Guest["👤 Guest User<br/>(Unauthenticated)"]
+    Student["👨‍🎓 Student<br/>(Medical Records Access)"]
+    Doctor["👨‍⚕️ Doctor<br/>(Healthcare Provider)"]
+    Admin["⚙️ Admin<br/>(System Administrator)"]
+    APIClient["🔌 API Client<br/>(External Systems)"]
+
+    %% Presentation Layer
+    subgraph Presentation["🎨 PRESENTATION LAYER"]
+        Templates["📄 Django Templates<br/>HTML/CSS/JavaScript"]
+        StaticFiles["🖼️ Static Assets<br/>(WhiteNoise)"]
+        MediaFiles["📁 Media Storage<br/>(User Uploads)"]
+    end
+
+    %% Middleware Layer
+    subgraph Middleware["🔧 MIDDLEWARE LAYER"]
+        Security["🔒 Security Middleware"]
+        Session["🎫 Session Management"]
+        CORS["🌐 CORS Headers"]
+        CSRF["🛡️ CSRF Protection"]
+        Auth["🔐 Authentication"]
+    end
+
+    %% Application Layer - Core
+    subgraph CoreApps["💼 CORE BUSINESS LOGIC"]
+        AccountsApp["👤 Accounts App<br/>• Custom User Model<br/>• Email Auth Backend<br/>• Profile Management"]
+        StudentsApp["👨‍🎓 Students App<br/>• Registration<br/>• Medical Records<br/>• Appointments"]
+        DoctorsApp["👨‍⚕️ Doctors App<br/>• Doctor Dashboard<br/>• Prescriptions<br/>• Certificates"]
+        AppointmentsApp["📅 Appointments App<br/>• Scheduling<br/>• Approval Workflow<br/>• Status Management"]
+    end
+
+    %% Application Layer - Supporting
+    subgraph SupportApps["🔔 SUPPORTING SERVICES"]
+        NotificationsApp["🔔 Notifications<br/>• Real-time Alerts<br/>• User Preferences<br/>• API Endpoints"]
+        AnalyticsApp["📊 Analytics<br/>• System Metrics<br/>• Usage Reports<br/>• Dashboard Data"]
+        TemplatesDocsApp["📋 Document Templates<br/>• Prescriptions<br/>• Certificates<br/>• Clearances"]
+    end
+
+    %% API Layer
+    subgraph APILayer["🔌 REST API LAYER"]
+        DRF["Django REST Framework<br/>• Serialization<br/>• ViewSets<br/>• Authentication"]
+    end
+
+    %% Data Persistence Layer
+    subgraph DataLayer["🗄️ DATA PERSISTENCE"]
+        ORM["Django ORM<br/>(Object-Relational Mapper)"]
+        Database["💾 SQLite Database<br/>• User Accounts<br/>• Medical Records<br/>• Appointments<br/>• Notifications"]
+    end
+
+    %% External Services
+    subgraph External["☁️ EXTERNAL SERVICES"]
+        PDF["📄 WeasyPrint<br/>(PDF Generation)"]
+        Email["📧 Email Service<br/>(SMTP)"]
+        FileStorage["📦 File Storage<br/>(Local/Cloud)"]
+    end
+
+    %% Infrastructure
+    subgraph Infrastructure["🚀 DEPLOYMENT"]
+        Gunicorn["🦄 Gunicorn<br/>(WSGI Server)"]
+        WhiteNoise["⚡ WhiteNoise<br/>(Static Files)"]
+    end
+
+    %% User Interactions
+    Guest --> Templates
+    Student --> Templates
+    Doctor --> Templates
+    Admin --> Templates
+    APIClient --> DRF
+
+    %% Request Flow
+    Templates --> Security
+    StaticFiles --> WhiteNoise
+    Security --> Session
+    Session --> CORS
+    CORS --> CSRF
+    CSRF --> Auth
+
+    %% Middleware to Apps
+    Auth --> AccountsApp
+    Auth --> StudentsApp
+    Auth --> DoctorsApp
+    Auth --> AppointmentsApp
+    Auth --> NotificationsApp
+    Auth --> AnalyticsApp
+    Auth --> TemplatesDocsApp
+
+    %% API Layer
+    DRF --> AccountsApp
+    DRF --> NotificationsApp
+
+    %% Data Access
+    AccountsApp --> ORM
+    StudentsApp --> ORM
+    DoctorsApp --> ORM
+    AppointmentsApp --> ORM
+    NotificationsApp --> ORM
+    AnalyticsApp --> ORM
+    TemplatesDocsApp --> ORM
+    ORM --> Database
+
+    %% External Service Integration
+    DoctorsApp --> PDF
+    TemplatesDocsApp --> PDF
+    NotificationsApp --> Email
+    AccountsApp --> Email
+    StudentsApp --> FileStorage
+    DoctorsApp --> FileStorage
+    MediaFiles --> FileStorage
+
+    %% Infrastructure
+    Gunicorn -.-> Templates
+    WhiteNoise -.-> StaticFiles
+
+    %% Styling
+    classDef userStyle fill:#e3f2fd,stroke:#1565c0,stroke-width:3px
+    classDef presentationStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef middlewareStyle fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef appStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    classDef dataStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef externalStyle fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    classDef infraStyle fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+
+    class Guest,Student,Doctor,Admin,APIClient userStyle
+    class Templates,StaticFiles,MediaFiles presentationStyle
+    class Security,Session,CORS,CSRF,Auth middlewareStyle
+    class AccountsApp,StudentsApp,DoctorsApp,AppointmentsApp,NotificationsApp,AnalyticsApp,TemplatesDocsApp,DRF appStyle
+    class ORM,Database dataStyle
+    class PDF,Email,FileStorage externalStyle
+    class Gunicorn,WhiteNoise infraStyle

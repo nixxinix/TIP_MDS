@@ -1,0 +1,360 @@
+erDiagram
+
+    %% ========================================
+    %% ACCOUNTS APP - User Management
+    %% ========================================
+
+    users {
+        integer id PK
+        varchar email UK "unique, not null"
+        varchar password "not null"
+        varchar role "student, doctor, admin"
+        varchar first_name
+        varchar last_name
+        varchar phone_number
+        boolean is_active
+        boolean is_staff
+        boolean is_superuser
+        timestamp date_joined
+        timestamp last_login
+    }
+
+    user_profiles {
+        integer user_id PK,FK
+        varchar avatar
+        text address
+        date date_of_birth
+        varchar emergency_contact_name
+        varchar emergency_contact_number
+        varchar emergency_contact_relationship
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    doctor_profiles {
+        integer user_id PK,FK
+        varchar license_number UK "unique, not null"
+        varchar specialization
+        varchar department
+        integer years_of_experience
+        text qualifications
+        varchar office_location
+        text consultation_hours
+        varchar signature_image
+        boolean is_active
+        boolean is_available_for_appointments
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% ========================================
+    %% STUDENTS APP - Student Profiles & Records
+    %% ========================================
+
+    student_profiles {
+        integer user_id PK,FK
+        varchar student_id UK "unique, not null"
+        varchar program "CS, IT, CE, EE"
+        varchar year_level "1-5"
+        varchar sex "M, F"
+        date date_of_birth
+        varchar contact_number
+        text address
+        varchar emergency_contact_name
+        varchar emergency_contact_relationship
+        varchar emergency_contact_number
+        text emergency_contact_address
+        decimal height_cm
+        decimal weight_kg
+        varchar blood_type
+        text allergies
+        text current_medications
+        text immunization_history
+        text medical_history
+        date last_dental_visit
+        text oral_habits
+        text dental_history
+        boolean is_complete
+        boolean is_verified
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    medical_records {
+        uuid id PK
+        integer student_id FK
+        integer doctor_id FK
+        integer approved_by_id FK
+        varchar record_type "medical, dental"
+        date visit_date
+        text chief_complaint
+        text diagnosis
+        text procedure
+        text prescription
+        text remarks
+        varchar blood_pressure
+        decimal temperature
+        integer pulse_rate
+        integer respiratory_rate
+        varchar lab_results
+        varchar xray_image
+        varchar attachments
+        varchar status "pending, approved, declined"
+        timestamp approved_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    record_update_requests {
+        uuid id PK
+        integer student_id FK
+        integer reviewed_by_id FK
+        varchar field_name
+        text old_value
+        text new_value
+        text reason
+        varchar supporting_document
+        varchar status "pending, approved, declined"
+        text review_notes
+        timestamp reviewed_at
+        timestamp created_at
+        timestamp expiry_date
+    }
+
+    %% ========================================
+    %% APPOINTMENTS APP - Scheduling
+    %% ========================================
+
+    appointments {
+        uuid id PK
+        varchar ticket_number UK
+        integer student_id FK
+        integer doctor_id FK
+        integer approved_by_id FK
+        varchar service_type
+        date preferred_date
+        varchar preferred_time_slot
+        timestamp actual_datetime
+        text reason
+        text doctor_notes
+        varchar emergency_contact_name
+        varchar emergency_contact_number
+        varchar status "pending, approved, completed"
+        timestamp approved_at
+        timestamp completed_at
+        timestamp cancelled_at
+        text cancellation_reason
+        boolean reminder_sent
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    appointment_notes {
+        integer id PK
+        uuid appointment_id FK
+        integer author_id FK
+        text note
+        boolean is_internal
+        timestamp created_at
+    }
+
+    %% ========================================
+    %% TEMPLATES_DOCS APP - Certificates & Prescriptions
+    %% ========================================
+
+    templates {
+        uuid id PK
+        integer created_by_id FK
+        varchar name
+        varchar template_type
+        text description
+        text template_html
+        text template_css
+        varchar header_image
+        text footer_text
+        boolean is_active
+        boolean is_default
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    issued_certificates {
+        uuid id PK
+        varchar certificate_number UK
+        integer student_id FK
+        integer doctor_id FK
+        uuid template_id FK
+        varchar title
+        text purpose
+        text diagnosis
+        text prescription
+        text remarks
+        date date_issued
+        date valid_until
+        varchar pdf_file
+        varchar status "active, expired, revoked"
+        timestamp revoked_at
+        text revocation_reason
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    prescriptions {
+        uuid id PK
+        varchar prescription_number UK
+        integer student_id FK
+        integer doctor_id FK
+        text diagnosis
+        text medications
+        text instructions
+        date date_issued
+        date valid_until
+        varchar pdf_file
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% ========================================
+    %% ANALYTICS APP - Statistics & Reports
+    %% ========================================
+
+    morbidity_statistics {
+        uuid id PK
+        integer generated_by_id FK
+        varchar period_type "daily, weekly, monthly"
+        date period_start
+        date period_end
+        varchar diagnosis
+        varchar record_type
+        integer case_count
+        decimal percentage
+        timestamp generated_at
+    }
+
+    consultation_statistics {
+        uuid id PK
+        varchar period_type
+        date period_start
+        date period_end
+        integer total_consultations
+        integer medical_consultations
+        integer dental_consultations
+        integer total_appointments
+        integer completed_appointments
+        integer cancelled_appointments
+        integer no_show_appointments
+        integer certificates_issued
+        integer prescriptions_issued
+        integer new_students_registered
+        timestamp generated_at
+    }
+
+    generated_reports {
+        uuid id PK
+        integer generated_by_id FK
+        varchar report_type
+        varchar report_name
+        varchar format "pdf, csv, excel"
+        date date_from
+        date date_to
+        varchar report_file
+        text filters_applied
+        integer download_count
+        timestamp generated_at
+    }
+
+    %% ========================================
+    %% NOTIFICATIONS APP - User Notifications
+    %% ========================================
+
+    notifications {
+        uuid id PK
+        integer recipient_id FK
+        varchar notification_type
+        varchar title
+        text message
+        varchar priority "low, normal, high"
+        varchar action_url
+        varchar action_label
+        varchar related_object_type
+        varchar related_object_id
+        boolean is_read
+        timestamp read_at
+        boolean send_email
+        boolean email_sent
+        timestamp email_sent_at
+        timestamp created_at
+        timestamp expires_at
+    }
+
+    email_logs {
+        uuid id PK
+        uuid notification_id FK
+        varchar recipient_email
+        varchar recipient_name
+        varchar subject
+        text body
+        varchar status "pending, sent, failed"
+        text error_message
+        integer retry_count
+        integer max_retries
+        timestamp created_at
+        timestamp sent_at
+    }
+
+    notification_preferences {
+        integer user_id PK,FK
+        boolean email_appointment_approved
+        boolean email_appointment_reminder
+        boolean email_request_status
+        boolean email_certificate_issued
+        boolean email_system_notifications
+        boolean inapp_appointment_updates
+        boolean inapp_request_updates
+        boolean inapp_system_notifications
+        integer appointment_reminder_hours
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    %% ========================================
+    %% RELATIONSHIPS
+    %% ========================================
+
+    %% User Relationships
+    users ||--o| user_profiles : has
+    users ||--o| doctor_profiles : has
+    users ||--o| student_profiles : has
+    users ||--o| notification_preferences : has
+
+    %% Student Relationships
+    student_profiles ||--o{ medical_records : has
+    student_profiles ||--o{ record_update_requests : submits
+    student_profiles ||--o{ appointments : books
+    student_profiles ||--o{ issued_certificates : receives
+    student_profiles ||--o{ prescriptions : receives
+
+    %% Doctor Relationships
+    users ||--o{ medical_records : creates
+    users ||--o{ appointments : handles
+    users ||--o{ issued_certificates : issues
+    users ||--o{ prescriptions : issues
+    users ||--o{ templates : creates
+
+    %% Approval Relationships
+    users ||--o{ medical_records : approves
+    users ||--o{ appointments : approves
+    users ||--o{ record_update_requests : reviews
+
+    %% Document Relationships
+    templates ||--o{ issued_certificates : uses
+    appointments ||--o{ appointment_notes : has
+
+    %% Analytics Relationships
+    users ||--o{ morbidity_statistics : generates
+    users ||--o{ generated_reports : generates
+
+    %% Notification Relationships
+    users ||--o{ notifications : receives
+    notifications ||--o| email_logs : triggers
+    users ||--o{ appointment_notes : writes

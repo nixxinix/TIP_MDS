@@ -103,8 +103,11 @@ def create_certificate_context(student, doctor, certificate_data):
     context = {
         # School Information
         'school_name': 'Technological Institute of the Philippines',
-        'school_address': '938 Aurora Blvd, Cubao, Quezon City, Metro Manila',
+        'school_address': '363 P. Casal Street, Quiapo, Manila; 1338 Arlegui Street, Quiapo, Manila',
         'school_logo_url': '',  # Add logo URL if available
+        
+        # Certificate Title (DYNAMIC - This makes the title change based on certificate type!)
+        'certificate_title': certificate_data.get('title', 'MEDICAL CERTIFICATE'),
         
         # Student Information
         'student_name': student.user.get_full_name(),
@@ -155,8 +158,9 @@ def generate_certificate_pdf(certificate):
     Returns:
         ContentFile with PDF data
     """
-    # Prepare context data
+    # Prepare context data - PASS THE TITLE HERE!
     certificate_data = {
+        'title': certificate.title,  # ✅ This makes the title dynamic!
         'certificate_number': certificate.certificate_number,
         'diagnosis': certificate.diagnosis,
         'prescription': certificate.prescription,
@@ -206,7 +210,7 @@ def generate_prescription_pdf(prescription):
     """
     context = {
         'school_name': 'Technological Institute of the Philippines',
-        'school_address': '938 Aurora Blvd, Cubao, Quezon City, Metro Manila',
+        'school_address': '363 P. Casal Street, Quiapo, Manila; 1338 Arlegui Street, Quiapo, Manila',
         'prescription_number': prescription.prescription_number,
         'student_name': prescription.student.user.get_full_name(),
         'student_id': prescription.student.student_id,
@@ -229,54 +233,194 @@ def generate_prescription_pdf(prescription):
 
 def get_default_certificate_template(context):
     """
-    Return default certificate HTML template.
+    Return default certificate HTML template with improved formatting.
+    Uses dynamic title from context.
     """
+    # Get the certificate title (Medical Certificate, Medical Clearance, Dental Certificate)
+    cert_title = context.get('certificate_title', 'MEDICAL CERTIFICATE').upper()
+    
     return f"""
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
-        <title>Medical Certificate</title>
+        <title>{cert_title}</title>
+        <style>
+            @page {{
+                size: A4;
+                margin: 2.5cm 2cm;
+            }}
+            body {{
+                font-family: 'Times New Roman', serif;
+                font-size: 11pt;
+                line-height: 1.6;
+                color: #000;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }}
+            .page-wrapper {{
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }}
+            .main-content {{
+                flex: 1;
+            }}
+            .header {{
+                text-align: center;
+                margin-bottom: 30px;
+                padding-bottom: 15px;
+                border-bottom: 3px solid #000;
+            }}
+            .header h1 {{
+                font-size: 16pt;
+                font-weight: bold;
+                margin: 0 0 5px 0;
+                letter-spacing: 0.5px;
+            }}
+            .header .address {{
+                font-size: 9pt;
+                margin: 3px 0;
+                color: #333;
+            }}
+            .header h2 {{
+                font-size: 18pt;
+                font-weight: bold;
+                margin: 20px 0 0 0;
+                letter-spacing: 3px;
+            }}
+            .date-cert-row {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 20px 0 30px 0;
+                padding-bottom: 15px;
+                border-bottom: 1px solid #ddd;
+            }}
+            .date-issued {{
+                font-size: 11pt;
+                font-weight: bold;
+            }}
+            .certificate-number {{
+                font-size: 8pt;
+                color: #777;
+                font-style: italic;
+            }}
+            .to-whom {{
+                margin: 25px 0 20px 0;
+                font-weight: bold;
+                font-size: 11pt;
+            }}
+            .content {{
+                text-align: justify;
+                line-height: 1.8;
+            }}
+            .certification-text {{
+                margin: 20px 0;
+                text-indent: 50px;
+                text-align: justify;
+            }}
+            .info-row {{
+                margin: 12px 0;
+                padding-left: 0;
+            }}
+            .field-label {{
+                font-weight: bold;
+                display: inline-block;
+                min-width: 110px;
+            }}
+            .field-value {{
+                display: inline;
+            }}
+            .closing-text {{
+                margin: 30px 0 20px 0;
+                text-indent: 50px;
+                text-align: justify;
+            }}
+            .signature-section {{
+                margin-top: auto;
+                padding-top: 60px;
+                text-align: center;
+            }}
+            .signature-line {{
+                border-top: 2px solid #000;
+                width: 280px;
+                margin: 40px auto 8px;
+            }}
+            .doctor-name {{
+                font-weight: bold;
+                font-size: 12pt;
+                margin: 5px 0;
+            }}
+            .doctor-details {{
+                font-size: 10pt;
+                margin: 3px 0;
+                color: #333;
+            }}
+        </style>
     </head>
     <body>
         <div class="header">
-            <h1>{context['school_name']}</h1>
-            <p>{context['school_address']}</p>
-            <h2 style="margin-top: 30px;">MEDICAL CERTIFICATE</h2>
+            <h1>Technological Institute of the Philippines</h1>
+            <p class="address">363 P. Casal Street, Quiapo, Manila; 1338 Arlegui Street, Quiapo, Manila</p>
+            <h2>{cert_title}</h2>
         </div>
         
-        <div class="certificate-number">
-            Certificate No.: {context['certificate_number']}
+        <div class="date-cert-row">
+            <div class="date-issued">
+                <span class="field-label">Date Issued:</span>
+                <span class="field-value">{context['date_issued']}</span>
+            </div>
+            <div class="certificate-number">
+                Certificate No.: {context['certificate_number']}
+            </div>
         </div>
-        
-        <div class="content" style="margin-top: 30px;">
-            <p><strong>Date Issued:</strong> {context['date_issued']}</p>
             
-            <p style="margin-top: 20px;">TO WHOM IT MAY CONCERN:</p>
+            <p class="to-whom">TO WHOM IT MAY CONCERN:</p>
             
-            <p style="margin-top: 20px;">
+            <p class="certification-text">
                 This is to certify that <strong>{context['student_name']}</strong>, 
                 Student ID: <strong>{context['student_id']}</strong>, 
                 {context['program']} - {context['year_level']}, 
-                was examined on {context['date']}.
+                was examined on <strong>{context['date']}</strong>.
             </p>
             
-            {f'<p><strong>Diagnosis:</strong> {context["diagnosis"]}</p>' if context.get('diagnosis') else ''}
-            {f'<p><strong>Prescription:</strong> {context["prescription"]}</p>' if context.get('prescription') else ''}
-            {f'<p><strong>Remarks:</strong> {context["remarks"]}</p>' if context.get('remarks') else ''}
+            {f'''<div class="info-row">
+                <span class="field-label">Diagnosis:</span>
+                <span class="field-value">{context["diagnosis"]}</span>
+            </div>''' if context.get('diagnosis') else ''}
             
-            <p style="margin-top: 30px;">
+            {f'''<div class="info-row">
+                <span class="field-label">Prescription:</span>
+                <span class="field-value">{context["prescription"]}</span>
+            </div>''' if context.get('prescription') else ''}
+            
+            {f'''<div class="info-row">
+                <span class="field-label">Remarks:</span>
+                <span class="field-value">{context["remarks"]}</span>
+            </div>''' if context.get('remarks') else ''}
+            
+            {f'''<div class="info-row">
+                <span class="field-label">Purpose:</span>
+                <span class="field-value">{context["purpose"]}</span>
+            </div>''' if context.get('purpose') else ''}
+            
+            <p class="closing-text">
                 This certificate is issued upon request for whatever legal purpose it may serve.
             </p>
             
-            {f'<p><strong>Valid Until:</strong> {context["valid_until"]}</p>' if context.get('valid_until') else ''}
+            {f'''<div class="info-row">
+                <span class="field-label">Valid Until:</span>
+                <span class="field-value">{context["valid_until"]}</span>
+            </div>''' if context.get('valid_until') else ''}
         </div>
         
         <div class="signature-section">
             <div class="signature-line"></div>
-            <p><strong>{context['doctor_title']}</strong></p>
-            <p>{context['doctor_specialization']}</p>
-            <p>License No.: {context['doctor_license']}</p>
+            <p class="doctor-name">{context['doctor_title']}</p>
+            <p class="doctor-details">{context['doctor_specialization']}</p>
+            <p class="doctor-details">License No.: {context['doctor_license']}</p>
         </div>
     </body>
     </html>
@@ -285,39 +429,116 @@ def get_default_certificate_template(context):
 
 def get_default_prescription_template(context):
     """
-    Return default prescription HTML template.
+    Return default prescription HTML template with improved formatting.
     """
+    # Format medications with line breaks
+    medications = context.get('medications', '')
+    formatted_meds = medications.replace('\n', '<br>')
+    
     return f"""
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
         <title>Prescription</title>
+        <style>
+            @page {{
+                size: A4;
+                margin: 2.5cm 2cm;
+            }}
+            body {{
+                font-family: 'Times New Roman', serif;
+                font-size: 12pt;
+                line-height: 1.8;
+                color: #000;
+            }}
+            .header {{
+                text-align: center;
+                border-bottom: 2px solid #000;
+                padding-bottom: 20px;
+                margin-bottom: 30px;
+            }}
+            .header h1 {{
+                font-size: 18pt;
+                font-weight: bold;
+                margin: 0 0 8px 0;
+            }}
+            .header p {{
+                font-size: 10pt;
+                margin: 5px 0;
+            }}
+            .header h2 {{
+                font-size: 16pt;
+                font-weight: bold;
+                margin: 25px 0 0 0;
+                letter-spacing: 2px;
+            }}
+            .rx-number {{
+                text-align: right;
+                font-size: 9pt;
+                color: #666;
+                margin-bottom: 25px;
+            }}
+            .patient-info {{
+                margin: 20px 0;
+            }}
+            .patient-info p {{
+                margin: 8px 0;
+            }}
+            .field-label {{
+                font-weight: bold;
+                display: inline-block;
+                min-width: 110px;
+            }}
+            .rx-symbol {{
+                font-size: 42px;
+                font-weight: bold;
+                color: #2196f3;
+                margin: 25px 0 10px 0;
+            }}
+            .medications {{
+                margin: 20px 0 20px 30px;
+                line-height: 2;
+            }}
+            .signature-section {{
+                margin-top: 80px;
+                text-align: center;
+            }}
+            .signature-line {{
+                border-top: 2px solid #000;
+                width: 250px;
+                margin: 50px auto 10px;
+            }}
+        </style>
     </head>
     <body>
         <div class="header">
-            <h1>{context['school_name']}</h1>
-            <p>{context['school_address']}</p>
-            <h2 style="margin-top: 30px;">PRESCRIPTION</h2>
+            <h1>Technological Institute of the Philippines</h1>
+            <p>363 P. Casal Street, Quiapo, Manila; 1338 Arlegui Street, Quiapo, Manila</p>
+            <h2>PRESCRIPTION</h2>
         </div>
         
-        <div class="certificate-number">
+        <div class="rx-number">
             Rx No.: {context['prescription_number']}
         </div>
         
-        <div class="content" style="margin-top: 30px;">
-            <p><strong>Date:</strong> {context['date_issued']}</p>
-            <p><strong>Patient:</strong> {context['student_name']}</p>
-            <p><strong>Student ID:</strong> {context['student_id']}</p>
-            
-            <p style="margin-top: 20px;"><strong>Diagnosis:</strong></p>
-            <p>{context['diagnosis']}</p>
-            
-            <p style="margin-top: 20px;"><strong>Rx:</strong></p>
-            <pre style="white-space: pre-wrap; font-family: Arial;">{context['medications']}</pre>
-            
-            {f'<p style="margin-top: 20px;"><strong>Instructions:</strong></p><p>{context["instructions"]}</p>' if context.get('instructions') else ''}
+        <div class="patient-info">
+            <p><span class="field-label">Date:</span> {context['date_issued']}</p>
+            <p><span class="field-label">Patient:</span> {context['student_name']}</p>
+            <p><span class="field-label">Student ID:</span> {context['student_id']}</p>
         </div>
+        
+        <div style="margin-top: 30px;">
+            <p><strong>Diagnosis:</strong></p>
+            <p style="margin-left: 30px;">{context['diagnosis']}</p>
+        </div>
+        
+        <p class="rx-symbol">℞</p>
+        <div class="medications">
+            {formatted_meds}
+        </div>
+        
+        {f'<div style="margin-top: 30px;"><p><strong>Instructions:</strong></p><p style="margin-left: 30px;">{context["instructions"]}</p></div>' if context.get('instructions') else ''}
         
         <div class="signature-section">
             <div class="signature-line"></div>

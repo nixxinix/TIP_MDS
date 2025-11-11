@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Generate Certificate - TIP MDS EMR{% endblock %}
+{% block title %}Generate Medical Certificate - TIP MDS EMR{% endblock %}
 
 {% block content %}
 <div class="dashboard active">
@@ -66,7 +66,7 @@
 
     <main class="main-content">
         <div class="top-bar">
-            <h1 class="page-title">Generate Certificate</h1>
+            <h1 class="page-title">Generate Medical Certificate</h1>
             <div class="top-bar-right">
                 <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
                 <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
@@ -75,116 +75,142 @@
             </div>
         </div>
 
-        <div style="margin-bottom: 20px;">
-            <a href="{% url 'doctors:templates' %}" class="btn-secondary" style="display: inline-block; padding: 10px 20px; text-decoration: none;">
-                <i class="fas fa-arrow-left"></i> Back to Templates
-            </a>
-        </div>
-
         <div class="form-container">
-            <h3><i class="fas fa-certificate"></i> Certificate Generation Form</h3>
-            <form method="POST">
+            <div style="margin-bottom: 20px;">
+                <a href="{% url 'doctors:templates' %}" class="btn-secondary" style="text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Back to Templates
+                </a>
+            </div>
+
+            <h3><i class="fas fa-certificate"></i> Medical Certificate Generation Form</h3>
+
+            <form method="POST" id="certificateForm">
                 {% csrf_token %}
-                
-                <h4 style="margin: 20px 0 15px; color: #667eea;">Student Information</h4>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Student ID <span style="color: #e74c3c;">*</span></label>
-                        {{ form.student_id }}
-                        {% if form.student_id.errors %}
-                            <small style="color: #dc3545;">{{ form.student_id.errors.0 }}</small>
-                        {% endif %}
-                        <small style="color: #7f8c8d;">Enter the student ID to generate certificate for</small>
+
+                <!-- Student Information -->
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                    <h4 style="color: #667eea; margin-bottom: 20px;"><i class="fas fa-user"></i> Student Information</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Student ID *</label>
+                            <input type="text" name="student_id" id="studentId" class="form-control" placeholder="e.g., 2310346" required>
+                            <button type="button" onclick="lookupStudent()" class="btn-primary" style="margin-top: 10px; width: auto; padding: 10px 20px;">
+                                <i class="fas fa-search"></i> Lookup Student
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="studentInfo" style="display: none; margin-top: 20px; padding: 20px; background: white; border-radius: 8px; border: 1px solid #e0e6ed;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" id="studentName" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Age</label>
+                                <input type="text" id="studentAge" class="form-control" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Sex</label>
+                                <input type="text" id="studentSex" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Course/Year</label>
+                                <input type="text" id="studentCourse" class="form-control" readonly>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <h4 style="margin: 30px 0 15px; color: #667eea;">Certificate Details</h4>
-                <div class="form-row">
+                <!-- Certificate Details -->
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                    <h4 style="color: #2196f3; margin-bottom: 20px;"><i class="fas fa-notes-medical"></i> Certificate Details</h4>
+                    
                     <div class="form-group">
-                        <label>Certificate Title <span style="color: #e74c3c;">*</span></label>
-                        {{ form.title }}
-                        {% if form.title.errors %}
-                            <small style="color: #dc3545;">{{ form.title.errors.0 }}</small>
-                        {% endif %}
+                        <label>Illness/Condition *</label>
+                        <input type="text" name="diagnosis" class="form-control" placeholder="e.g., Upper Respiratory Tract Infection, Fever" required>
                     </div>
-                    <div class="form-group">
-                        <label>Template</label>
-                        {{ form.template }}
-                        {% if form.template.errors %}
-                            <small style="color: #dc3545;">{{ form.template.errors.0 }}</small>
-                        {% endif %}
-                        <small style="color: #7f8c8d;">Select certificate template (optional)</small>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Rest From *</label>
+                            <input type="date" name="date_issued" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Rest Until *</label>
+                            <input type="date" name="valid_until" class="form-control" required>
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label>Purpose <span style="color: #e74c3c;">*</span></label>
-                    {{ form.purpose }}
-                    {% if form.purpose.errors %}
-                        <small style="color: #dc3545;">{{ form.purpose.errors.0 }}</small>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label>Diagnosis / Findings</label>
-                    {{ form.diagnosis }}
-                    {% if form.diagnosis.errors %}
-                        <small style="color: #dc3545;">{{ form.diagnosis.errors.0 }}</small>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label>Prescription / Treatment</label>
-                    {{ form.prescription }}
-                    {% if form.prescription.errors %}
-                        <small style="color: #dc3545;">{{ form.prescription.errors.0 }}</small>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label>Remarks / Additional Notes</label>
-                    {{ form.remarks }}
-                    {% if form.remarks.errors %}
-                        <small style="color: #dc3545;">{{ form.remarks.errors.0 }}</small>
-                    {% endif %}
-                </div>
-
-                <h4 style="margin: 30px 0 15px; color: #667eea;">Validity Period</h4>
-                <div class="form-row">
                     <div class="form-group">
-                        <label>Date Issued <span style="color: #e74c3c;">*</span></label>
-                        {{ form.date_issued }}
-                        {% if form.date_issued.errors %}
-                            <small style="color: #dc3545;">{{ form.date_issued.errors.0 }}</small>
-                        {% endif %}
+                        <label>Remarks/Recommendations</label>
+                        <textarea name="remarks" class="form-control" rows="4" placeholder="Additional remarks or doctor's recommendations"></textarea>
                     </div>
+
                     <div class="form-group">
-                        <label>Valid Until</label>
-                        {{ form.valid_until }}
-                        {% if form.valid_until.errors %}
-                            <small style="color: #dc3545;">{{ form.valid_until.errors.0 }}</small>
-                        {% endif %}
-                        <small style="color: #7f8c8d;">Leave blank if no expiry</small>
+                        <label>Purpose of Certificate</label>
+                        <input type="text" name="purpose" class="form-control" placeholder="e.g., For medical excuse, For school requirements">
                     </div>
                 </div>
 
-                <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 25px 0; border-radius: 6px;">
-                    <p style="margin: 0; color: #0d47a1;">
-                        <i class="fas fa-info-circle"></i> 
-                        <strong>Note:</strong> A PDF certificate will be automatically generated and sent to the student via email notification.
-                    </p>
-                </div>
-
-                <div style="margin-top: 30px;">
-                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 40px;">
-                        <i class="fas fa-certificate"></i> Generate Certificate
+                <!-- Submit Button -->
+                <div style="text-align: right;">
+                    <button type="submit" class="btn-primary" style="padding: 15px 40px; font-size: 16px;">
+                        <i class="fas fa-certificate"></i> Generate Medical Certificate
                     </button>
-                    <a href="{% url 'doctors:templates' %}" class="btn-secondary" style="text-decoration: none; display: inline-block;">
-                        <i class="fas fa-times"></i> Cancel
-                    </a>
                 </div>
             </form>
         </div>
     </main>
 </div>
+
+<script>
+// Student Lookup
+async function lookupStudent() {
+    const studentId = document.getElementById('studentId').value.trim();
+    if (!studentId) {
+        alert('Please enter a Student ID');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/doctor/api/student-lookup/?student_id=${studentId}`);
+        const data = await response.json();
+
+        if (data.success) {
+            document.getElementById('studentName').value = data.student.name;
+            document.getElementById('studentAge').value = data.student.age;
+            document.getElementById('studentSex').value = data.student.sex;
+            document.getElementById('studentCourse').value = data.student.course;
+            document.getElementById('studentInfo').style.display = 'block';
+        } else {
+            alert(data.error || 'Student not found');
+            document.getElementById('studentInfo').style.display = 'none';
+        }
+    } catch (error) {
+        alert('Error looking up student');
+        console.error(error);
+    }
+}
+
+// Enter key on Student ID
+document.getElementById('studentId').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        lookupStudent();
+    }
+});
+
+// Set default dates (today and 3 days from now)
+const today = new Date().toISOString().split('T')[0];
+const threeDaysLater = new Date();
+threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+const restUntil = threeDaysLater.toISOString().split('T')[0];
+
+document.querySelector('[name="date_issued"]').value = today;
+document.querySelector('[name="valid_until"]').value = restUntil;
+</script>
 {% endblock %}

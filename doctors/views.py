@@ -9,6 +9,8 @@ from django.db.models import Count, Q
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from accounts.decorators import doctor_required
+from accounts.forms import DoctorProfileForm
+from doctors.models import DoctorProfile
 from students.models import StudentProfile, MedicalRecord, RecordUpdateRequest
 from students.forms import MedicalRecordForm
 from appointments.models import Appointment
@@ -320,47 +322,6 @@ def create_medical_record(request, student_id):
 
 @login_required
 @doctor_required
-def generate_certificate(request):
-    """Generate certificate for student."""
-    
-    if request.method == 'POST':
-        student_id = request.POST.get('student_id')
-        student_profile = get_object_or_404(StudentProfile, student_id=student_id)
-        
-        form = CertificateGenerationForm(request.POST)
-        if form.is_valid():
-            certificate = form.save(commit=False)
-            certificate.student = student_profile
-            certificate.doctor = request.user
-            certificate.save()
-            
-            # Generate PDF
-            pdf_file = generate_certificate_pdf(certificate)
-            certificate.pdf_file.save(
-                f"certificate_{certificate.certificate_number}.pdf",
-                pdf_file,
-                save=True
-            )
-            
-            # Send notification
-            notify_certificate_issued(certificate)
-            
-            messages.success(
-                request,
-                f'Certificate generated successfully! Certificate No: {certificate.certificate_number}'
-            )
-            return redirect('doctors:templates')
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        form = CertificateGenerationForm()
-    
-    context = {'form': form}
-    return render(request, 'doctor/generate-certificate.html', context)
-
-
-@login_required
-@doctor_required
 def templates_management(request):
     """Manage document templates."""
     
@@ -442,25 +403,100 @@ def export_report(request):
 @login_required
 @doctor_required
 def settings_view(request):
-    """System settings view."""
+    """System settings view for doctors and admins."""
     
-    # Get doctor profile if exists
-    doctor_profile = None
-    if hasattr(request.user, 'doctor_profile'):
-        doctor_profile = request.user.doctor_profile
-    
-    # User management (admins only)
+    from django.utils import timezone
     from accounts.models import User
-    users = None
+    
+    # Get or create doctor profile if user is a doctor
+    doctor_profile = None
+    if request.user.is_doctor():
+        doctor_profile, created = DoctorProfile.objects.get_or_create(user=request.user)
+    
+    # Check if profile needs completion
+    profile_incomplete = False
+    if doctor_profile and not doctor_profile.is_profile_complete():
+        profile_incomplete = True
+    
+    # Handle form submissions
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        
+        if form_type == 'profile':
+            # Get specialization and license from POST
+            specialization = request.POST.get('specialization')
+            license_number = request.POST.get('license_number')
+            
+            # Update doctor profile if provided
+            if doctor_profile and (specialization or license_number):
+                if specialization:
+                    doctor_profile.specialization = specialization
+                if license_number:
+                    # Check if license number is unique
+                    existing = DoctorProfile.objects.filter(
+                        license_number=license_number
+                    ).exclude(user=request.user).exists()
+                    
+                    if existing:
+                        messages.error(request, 'This license number is already registered.')
+                    else:
+                        doctor_profile.license_number = license_number
+                        doctor_profile.profile_completed = True
+                        doctor_profile.temp_password = None  # Clear temp password
+                        doctor_profile.save()
+                        messages.success(request, 'Professional information updated successfully!')
+            
+            # Password change handling
+            current_password = request.POST.get('current_password')
+            new_password = request.POST.get('new_password')
+            confirm_password = request.POST.get('confirm_password')
+            
+            if current_password and new_password and confirm_password:
+                if not request.user.check_password(current_password):
+                    messages.error(request, 'Current password is incorrect.')
+                elif new_password != confirm_password:
+                    messages.error(request, 'New passwords do not match.')
+                elif len(new_password) < 8:
+                    messages.error(request, 'Password must be at least 8 characters long.')
+                else:
+                    request.user.set_password(new_password)
+                    request.user.save()
+                    
+                    # Clear temp password from profile
+                    if doctor_profile:
+                        doctor_profile.temp_password = None
+                        doctor_profile.save()
+                    
+                    from django.contrib.auth import update_session_auth_hash
+                    update_session_auth_hash(request, request.user)
+                    
+                    messages.success(request, 'Password changed successfully!')
+                    return redirect('doctors:settings')
+        
+        elif form_type == 'system_config' and request.user.is_admin_user():
+            messages.success(request, 'System configuration saved successfully!')
+            return redirect('doctors:settings')
+    
+    # Get all users for admin
+    users = []
     if request.user.is_admin_user():
-        users = User.objects.all().order_by('-date_joined')[:20]
+        users = User.objects.all().order_by('-date_joined')
+    
+    # Check if user needs to complete profile (first login)
+    show_profile_completion_alert = False
+    if doctor_profile and not doctor_profile.is_profile_complete():
+        show_profile_completion_alert = True
     
     context = {
+        'today': timezone.now(),
         'doctor_profile': doctor_profile,
         'users': users,
+        'profile_incomplete': profile_incomplete,
+        'show_profile_completion_alert': show_profile_completion_alert,
+        'temp_password': doctor_profile.temp_password if doctor_profile else None,
     }
     
-    return render(request, 'doctor/doctor-settings.html', context)
+    return render(request, 'doctor/settings.html', context)
 
 @login_required
 @doctor_required
@@ -595,7 +631,7 @@ def cancel_appointment(request, appointment_id):
     return render(request, 'doctor/cancel-appointment.html', context)
 
 # ============================================
-# NEW TEMPLATE GENERATION VIEWS
+# FIXED TEMPLATE GENERATION VIEWS
 # ============================================
 
 @login_required
@@ -604,32 +640,46 @@ def generate_prescription(request):
     """Generate e-prescription for student."""
     
     if request.method == 'POST':
-        student_id = request.POST.get('student_id')
-        student_profile = get_object_or_404(StudentProfile, student_id=student_id)
-        
-        # Create prescription
-        from templates_docs.models import Prescription
-        prescription = Prescription.objects.create(
-            student=student_profile,
-            doctor=request.user,
-            diagnosis=request.POST.get('diagnosis', ''),
-            medications=request.POST.get('medications', ''),
-            instructions=request.POST.get('instructions', '')
-        )
-        
-        # Generate PDF
-        pdf_file = generate_prescription_pdf(prescription)
-        prescription.pdf_file.save(
-            f"prescription_{prescription.prescription_number}.pdf",
-            pdf_file,
-            save=True
-        )
-        
-        messages.success(
-            request,
-            f'E-Prescription generated successfully! Rx No: {prescription.prescription_number}'
-        )
-        return redirect('doctors:templates')
+        try:
+            student_id = request.POST.get('student_id')
+            
+            if not student_id:
+                messages.error(request, 'Student ID is required.')
+                return render(request, 'doctor/generate-prescription.html')
+            
+            student_profile = get_object_or_404(StudentProfile, student_id=student_id)
+            
+            # Create prescription
+            from templates_docs.models import Prescription
+            prescription = Prescription.objects.create(
+                student=student_profile,
+                doctor=request.user,
+                diagnosis=request.POST.get('diagnosis', ''),
+                medications=request.POST.get('medications', ''),
+                instructions=request.POST.get('instructions', ''),
+                date_issued=timezone.now().date(),
+                valid_until=None  # Optional
+            )
+            
+            # Generate PDF
+            pdf_file = generate_prescription_pdf(prescription)
+            prescription.pdf_file.save(
+                f"prescription_{prescription.prescription_number}.pdf",
+                pdf_file,
+                save=True
+            )
+            
+            messages.success(
+                request,
+                f'E-Prescription generated successfully! Rx No: {prescription.prescription_number}'
+            )
+            return redirect('doctors:templates')
+            
+        except StudentProfile.DoesNotExist:
+            messages.error(request, f'No student found with ID: {student_id}')
+        except Exception as e:
+            messages.error(request, f'Error generating prescription: {str(e)}')
+            print(f"ERROR: {str(e)}")
     
     return render(request, 'doctor/generate-prescription.html')
 
@@ -640,16 +690,35 @@ def generate_clearance(request):
     """Generate medical clearance for student."""
     
     if request.method == 'POST':
-        student_id = request.POST.get('student_id')
-        student_profile = get_object_or_404(StudentProfile, student_id=student_id)
-        
-        form = CertificateGenerationForm(request.POST)
-        if form.is_valid():
-            certificate = form.save(commit=False)
-            certificate.student = student_profile
-            certificate.doctor = request.user
-            certificate.title = "Medical Clearance"
-            certificate.save()
+        try:
+            student_id = request.POST.get('student_id')
+            
+            if not student_id:
+                messages.error(request, 'Student ID is required.')
+                return render(request, 'doctor/generate-clearance.html')
+            
+            student_profile = get_object_or_404(StudentProfile, student_id=student_id)
+            
+            # Parse dates
+            date_issued_str = request.POST.get('date_issued')
+            valid_until_str = request.POST.get('valid_until')
+            
+            from datetime import datetime
+            date_issued = datetime.strptime(date_issued_str, '%Y-%m-%d').date() if date_issued_str else timezone.now().date()
+            valid_until = datetime.strptime(valid_until_str, '%Y-%m-%d').date() if valid_until_str else None
+            
+            # Create certificate
+            from templates_docs.models import IssuedCertificate
+            certificate = IssuedCertificate.objects.create(
+                student=student_profile,
+                doctor=request.user,
+                title="Medical Clearance",
+                purpose=request.POST.get('purpose', ''),
+                diagnosis=request.POST.get('diagnosis', ''),  # This is the Medical Status
+                remarks=request.POST.get('remarks', ''),
+                date_issued=date_issued,
+                valid_until=valid_until
+            )
             
             # Generate PDF
             pdf_file = generate_certificate_pdf(certificate)
@@ -659,13 +728,96 @@ def generate_clearance(request):
                 save=True
             )
             
+            # Send notification
+            from notifications.services import notify_certificate_issued
+            try:
+                notify_certificate_issued(certificate)
+            except:
+                pass
+            
             messages.success(
                 request,
                 f'Medical Clearance generated successfully! Certificate No: {certificate.certificate_number}'
             )
             return redirect('doctors:templates')
+            
+        except StudentProfile.DoesNotExist:
+            messages.error(request, f'No student found with ID: {student_id}')
+        except Exception as e:
+            messages.error(request, f'Error generating clearance: {str(e)}')
+            print(f"ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
     
     return render(request, 'doctor/generate-clearance.html')
+
+
+@login_required
+@doctor_required
+def generate_certificate(request):
+    """Generate medical certificate for student."""
+    
+    if request.method == 'POST':
+        try:
+            student_id = request.POST.get('student_id')
+            
+            if not student_id:
+                messages.error(request, 'Student ID is required.')
+                return render(request, 'doctor/generate-certificate.html')
+            
+            student_profile = get_object_or_404(StudentProfile, student_id=student_id)
+            
+            # Parse dates
+            date_issued_str = request.POST.get('date_issued')
+            valid_until_str = request.POST.get('valid_until')
+            
+            from datetime import datetime
+            date_issued = datetime.strptime(date_issued_str, '%Y-%m-%d').date() if date_issued_str else timezone.now().date()
+            valid_until = datetime.strptime(valid_until_str, '%Y-%m-%d').date() if valid_until_str else None
+            
+            # Create certificate
+            from templates_docs.models import IssuedCertificate
+            certificate = IssuedCertificate.objects.create(
+                student=student_profile,
+                doctor=request.user,
+                title="Medical Certificate",
+                purpose=request.POST.get('purpose', ''),
+                diagnosis=request.POST.get('diagnosis', ''),
+                remarks=request.POST.get('remarks', ''),
+                date_issued=date_issued,
+                valid_until=valid_until
+            )
+            
+            # Generate PDF
+            pdf_file = generate_certificate_pdf(certificate)
+            certificate.pdf_file.save(
+                f"certificate_{certificate.certificate_number}.pdf",
+                pdf_file,
+                save=True
+            )
+            
+            # Send notification
+            from notifications.services import notify_certificate_issued
+            try:
+                notify_certificate_issued(certificate)
+            except:
+                pass
+            
+            messages.success(
+                request,
+                f'Medical Certificate generated successfully! Certificate No: {certificate.certificate_number}'
+            )
+            return redirect('doctors:templates')
+            
+        except StudentProfile.DoesNotExist:
+            messages.error(request, f'No student found with ID: {student_id}')
+        except Exception as e:
+            messages.error(request, f'Error generating certificate: {str(e)}')
+            print(f"ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
+    
+    return render(request, 'doctor/generate-certificate.html')
 
 
 @login_required
@@ -674,16 +826,36 @@ def generate_dental_certificate(request):
     """Generate dental certificate for student."""
     
     if request.method == 'POST':
-        student_id = request.POST.get('student_id')
-        student_profile = get_object_or_404(StudentProfile, student_id=student_id)
-        
-        form = CertificateGenerationForm(request.POST)
-        if form.is_valid():
-            certificate = form.save(commit=False)
-            certificate.student = student_profile
-            certificate.doctor = request.user
-            certificate.title = "Dental Certificate"
-            certificate.save()
+        try:
+            student_id = request.POST.get('student_id')
+            
+            if not student_id:
+                messages.error(request, 'Student ID is required.')
+                return render(request, 'doctor/generate-dental-certificate.html')
+            
+            student_profile = get_object_or_404(StudentProfile, student_id=student_id)
+            
+            # Parse dates
+            date_issued_str = request.POST.get('date_issued')
+            valid_until_str = request.POST.get('valid_until')
+            
+            from datetime import datetime
+            date_issued = datetime.strptime(date_issued_str, '%Y-%m-%d').date() if date_issued_str else timezone.now().date()
+            valid_until = datetime.strptime(valid_until_str, '%Y-%m-%d').date() if valid_until_str else None
+            
+            # Create certificate
+            from templates_docs.models import IssuedCertificate
+            certificate = IssuedCertificate.objects.create(
+                student=student_profile,
+                doctor=request.user,
+                title="Dental Certificate",
+                diagnosis=request.POST.get('diagnosis', ''),
+                prescription=request.POST.get('prescription', ''),  # Findings/Diagnosis
+                remarks=request.POST.get('remarks', ''),  # Treatment
+                purpose=request.POST.get('purpose', ''),  # Recommendations
+                date_issued=date_issued,
+                valid_until=valid_until
+            )
             
             # Generate PDF
             pdf_file = generate_certificate_pdf(certificate)
@@ -693,14 +865,28 @@ def generate_dental_certificate(request):
                 save=True
             )
             
+            # Send notification
+            from notifications.services import notify_certificate_issued
+            try:
+                notify_certificate_issued(certificate)
+            except:
+                pass
+            
             messages.success(
                 request,
                 f'Dental Certificate generated successfully! Certificate No: {certificate.certificate_number}'
             )
             return redirect('doctors:templates')
+            
+        except StudentProfile.DoesNotExist:
+            messages.error(request, f'No student found with ID: {student_id}')
+        except Exception as e:
+            messages.error(request, f'Error generating dental certificate: {str(e)}')
+            print(f"ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
     
     return render(request, 'doctor/generate-dental-certificate.html')
-
 
 @login_required
 @doctor_required

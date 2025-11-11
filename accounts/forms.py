@@ -3,6 +3,7 @@ Authentication forms for user registration and login.
 """
 
 from django import forms
+from doctors.models import DoctorProfile
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -300,3 +301,150 @@ class PasswordResetRequestForm(forms.Form):
         if not User.objects.filter(email=email).exists():
             raise ValidationError('No account found with this email address.')
         return email.lower()
+
+class DoctorRegistrationForm(forms.ModelForm):
+    """
+    Form for admin to add new Doctor accounts.
+    Admin-only functionality - auto-generates secure password.
+    """
+    
+    email = forms.EmailField(
+        label='Email Address',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'doctor.name@tip.edu.ph'
+        }),
+        help_text='Must be a valid @tip.edu.ph email address'
+    )
+    
+    first_name = forms.CharField(
+        label='First Name',
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter first name'
+        })
+    )
+    
+    last_name = forms.CharField(
+        label='Last Name',
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter last name'
+        })
+    )
+    
+    phone_number = forms.CharField(
+        label='Phone Number',
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': '+63 912 345 6789'
+        })
+    )
+    
+    class Meta:
+        model = User
+        fields = ['email', 'first_name', 'last_name', 'phone_number']
+    
+    def clean_email(self):
+        """Validate that email is from institutional domain."""
+        email = self.cleaned_data.get('email')
+        
+        if not email:
+            raise ValidationError('Email is required.')
+        
+        # Check institutional domain
+        institutional_domain = settings.INSTITUTIONAL_EMAIL_DOMAIN
+        if not email.endswith(f'@{institutional_domain}'):
+            raise ValidationError(
+                f'Only {institutional_domain} email addresses are allowed.'
+            )
+        
+        # Check if email already exists
+        if User.objects.filter(email=email).exists():
+            raise ValidationError('This email address is already registered.')
+        
+        return email.lower()
+    
+    def save(self, commit=True):
+        """Create doctor user with auto-generated password."""
+        import random
+        import string
+        
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email'].lower()
+        user.role = 'doctor'  # Force doctor role
+        
+        # Generate secure random password
+        temp_password = ''.join(
+            random.choices(string.ascii_letters + string.digits + '!@#$%', k=12)
+        )
+        user.set_password(temp_password)  # Hash password
+        
+        if commit:
+            user.save()
+            # Create user profile
+            from accounts.models import UserProfile
+            UserProfile.objects.get_or_create(user=user)
+            
+            # Create doctor profile with temp password
+            from doctors.models import DoctorProfile
+            doctor_profile, created = DoctorProfile.objects.get_or_create(
+                user=user,
+                defaults={
+                    'profile_completed': False,
+                    'temp_password': temp_password  # Store for one-time display
+                }
+            )
+            
+            # Store temp password in user object for template display
+            user.temp_password = temp_password
+        
+        return user
+
+
+class DoctorProfileForm(forms.ModelForm):
+    """Form for doctor to complete their profile on first login."""
+    
+    specialization = forms.ChoiceField(
+        label='Specialization',
+        choices=[('', '--- Select Specialization ---')] + list(DoctorProfile.SPECIALIZATION_CHOICES),
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        }),
+        required=True
+    )
+    
+    license_number = forms.CharField(
+        label='License Number',
+        max_length=50,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'PRC-123456'
+        }),
+        help_text='Your Professional Regulation Commission (PRC) license number',
+        required=True
+    )
+    
+    class Meta:
+        from doctors.models import DoctorProfile
+        model = DoctorProfile
+        fields = ['specialization', 'license_number']
+    
+    def clean_license_number(self):
+        """Validate license number is unique."""
+        license_number = self.cleaned_data.get('license_number')
+        
+        # Check if license number already exists (excluding current user)
+        from doctors.models import DoctorProfile
+        existing = DoctorProfile.objects.filter(
+            license_number=license_number
+        ).exclude(user=self.instance.user if self.instance.pk else None)
+        
+        if existing.exists():
+            raise ValidationError('This license number is already registered.')
+        
+        return license_number
