@@ -1,0 +1,116 @@
+graph LR
+    %% Actors
+    API_Client["🔌 API Client"]
+    Admin["⚙️ Admin"]
+    Doctor["👨‍⚕️ Doctor"]
+    Guest["👤 Guest"]
+    Student["👨‍🎓 Student"]
+    User["👥 User"]
+
+    %% ACCOUNTS App
+    subgraph ACCOUNTS
+        accounts_0("👁️ Login")
+        accounts_1("👁️ Register")
+        accounts_2("👁️ Logout")
+        accounts_3("👁️ Profile")
+        accounts_4("👁️ Change Password")
+        accounts_5("👁️ Check Email Api")
+    end
+
+    Guest --> accounts_0
+    Guest --> accounts_1
+    Guest --> accounts_2
+    User --> accounts_3
+    User --> accounts_4
+    API_Client --> accounts_5
+
+    %% DOCTORS App
+    subgraph DOCTORS
+        doctors_0("👁️ Dashboard")
+        doctors_1("👁️ Search")
+        doctors_2("👁️ Create Record")
+        doctors_3("👁️ Pending")
+        doctors_4("👁️ Approve Request")
+        doctors_5("👁️ Decline Request")
+        doctors_6("👁️ Appointments")
+        doctors_7("👁️ Appointment Detail")
+        doctors_8("👁️ Approve Appointment")
+        doctors_9("👁️ Complete Appointment")
+        doctors_10("👁️ Cancel Appointment")
+        doctors_11("👁️ Templates")
+        doctors_12("👁️ Generate Prescription")
+        doctors_13("👁️ Generate Clearance")
+        doctors_14("👁️ Generate Certificate")
+    end
+
+    Doctor --> doctors_0
+    Doctor --> doctors_1
+    Doctor --> doctors_2
+    Doctor --> doctors_3
+    Doctor --> doctors_4
+    Doctor --> doctors_5
+    Doctor --> doctors_6
+    Doctor --> doctors_7
+    Doctor --> doctors_8
+    Doctor --> doctors_9
+    Doctor --> doctors_10
+    Doctor --> doctors_11
+    Doctor --> doctors_12
+    Doctor --> doctors_13
+    Doctor --> doctors_14
+
+    %% NOTIFICATIONS App
+    subgraph NOTIFICATIONS
+        notifications_0("👁️ List")
+        notifications_1("👁️ Mark Read")
+        notifications_2("👁️ Mark All Read")
+        notifications_3("👁️ Count Api")
+        notifications_4("👁️ Preferences")
+    end
+
+    User --> notifications_0
+    User --> notifications_1
+    User --> notifications_2
+    API_Client --> notifications_3
+    User --> notifications_4
+
+    %% STUDENTS App
+    subgraph STUDENTS
+        students_0("👁️ Dashboard")
+        students_1("👁️ Register")
+        students_2("👁️ Update")
+        students_3("👁️ Records")
+        students_4("👁️ Record Detail")
+        students_5("👁️ Request Update")
+        students_6("👁️ Appointments")
+        students_7("👁️ Appointment Detail")
+        students_8("👁️ Cancel Appointment")
+        students_9("👁️ Certificates")
+    end
+
+    Student --> students_0
+    Guest --> students_1
+    Student --> students_2
+    Student --> students_3
+    Student --> students_4
+    Student --> students_5
+    Student --> students_6
+    Student --> students_7
+    Student --> students_8
+    Student --> students_9
+
+    %% Admin Panel
+    subgraph ADMIN
+        admin_panel("⚙️ Django Admin Panel<br/>(117 admin URLs)")
+    end
+    Admin --> admin_panel
+
+    %% Styling
+    classDef actorStyle fill:#e1f5ff,stroke:#01579b,stroke-width:2px
+    classDef usecaseStyle fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    class API_Client actorStyle
+    class Admin actorStyle
+    class Guest actorStyle
+    class Student actorStyle
+    class User actorStyle
+    class Doctor actorStyle

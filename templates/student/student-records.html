@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Records - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Student Portal</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:dashboard' %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:register' %}">
+                    <i class="fas fa-file-medical"></i>
+                    <span>New Student Form</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:update' %}">
+                    <i class="fas fa-edit"></i>
+                    <span>Update Information</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:appointments' %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'students:records' %}">
+                    <i class="fas fa-folder-open"></i>
+                    <span>My Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:certificates' %}">
+                    <i class="fas fa-certificate"></i>
+                    <span>Certificates</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">My Medical & Dental Records</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                {% if unread_notifications_count > 0 %}
+                <a href="{% url 'notifications:list' %}" class="notification-icon" style="position: relative; margin-right: 15px; color: #667eea; font-size: 20px;">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">{{ unread_notifications_count }}</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <a href="{% url 'students:request_update' %}" class="btn-primary" style="display: inline-block; padding: 12px 24px; text-decoration: none;">
+                <i class="fas fa-plus"></i> Request Information Update
+            </a>
+        </div>
+
+        <div class="table-container">
+            <h3 style="margin-bottom: 20px;">Medical & Dental Records</h3>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'approved-records')">Approved Records</button>
+                <button class="tab" onclick="switchTab(event, 'pending-records')">Pending Updates</button>
+            </div>
+
+            <div id="approved-records" class="tab-content active">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Chief Complaint</th>
+                            <th>Diagnosis</th>
+                            <th>Doctor</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in approved_records %}
+                        <tr>
+                            <td>{{ record.visit_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if record.record_type == 'medical' %}
+                                <span style="color: #2196f3;"><i class="fas fa-stethoscope"></i> Medical</span>
+                                {% else %}
+                                <span style="color: #00bcd4;"><i class="fas fa-tooth"></i> Dental</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ record.chief_complaint|truncatewords:8 }}</td>
+                            <td>{{ record.diagnosis|truncatewords:10 }}</td>
+                            <td>{{ record.doctor.get_full_name|default:"N/A" }}</td>
+                            <td>
+                                <a href="{% url 'students:record_detail' record.id %}" class="action-btn btn-view">View Details</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #95a5a6; padding: 30px;">
+                                <i class="fas fa-folder-open" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                                No approved records found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="pending-records" class="tab-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Submitted Date</th>
+                            <th>Field</th>
+                            <th>Requested Change</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Expires</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in pending_requests %}
+                        <tr>
+                            <td>{{ request.created_at|date:"M d, Y" }}</td>
+                            <td><strong>{{ request.get_field_name_display|default:request.field_name }}</strong></td>
+                            <td>{{ request.new_value|truncatewords:10 }}</td>
+                            <td>{{ request.reason|truncatewords:8 }}</td>
+                            <td>
+                                {% if request.status == 'pending' %}
+                                <span class="status-badge status-pending">Pending Review</span>
+                                {% elif request.status == 'approved' %}
+                                <span class="status-badge status-approved">Approved</span>
+                                {% elif request.status == 'declined' %}
+                                <span class="status-badge status-declined">Declined</span>
+                                {% elif request.status == 'expired' %}
+                                <span class="status-badge status-declined">Expired</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ request.expiry_date|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #95a5a6; padding: 30px;">
+                                <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                                No pending update requests.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+function switchTab(event, tabId) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    // Remove active class from all tabs
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    // Show selected tab content
+    document.getElementById(tabId).classList.add('active');
+    
+    // Add active class to clicked tab
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}

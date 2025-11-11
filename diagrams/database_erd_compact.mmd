@@ -1,0 +1,75 @@
+erDiagram
+
+    %% Simplified ERD - Main Entities Only
+
+    USERS {
+        int id PK
+        string email UK
+        string role "student|doctor|admin"
+        string name
+        boolean is_active
+    }
+
+    STUDENT_PROFILES {
+        int user_id PK,FK
+        string student_id UK
+        string program
+        string year_level
+        text medical_info
+        boolean is_verified
+    }
+
+    DOCTOR_PROFILES {
+        int user_id PK,FK
+        string license_number UK
+        string specialization
+        string department
+        boolean is_available
+    }
+
+    MEDICAL_RECORDS {
+        uuid id PK
+        int student_id FK
+        int doctor_id FK
+        string record_type
+        text diagnosis
+        text prescription
+        string status
+    }
+
+    APPOINTMENTS {
+        uuid id PK
+        string ticket_number UK
+        int student_id FK
+        int doctor_id FK
+        date preferred_date
+        string status
+    }
+
+    CERTIFICATES {
+        uuid id PK
+        string certificate_number UK
+        int student_id FK
+        int doctor_id FK
+        string title
+        date date_issued
+    }
+
+    NOTIFICATIONS {
+        uuid id PK
+        int recipient_id FK
+        string type
+        text message
+        boolean is_read
+    }
+
+    %% Relationships
+    USERS ||--o| STUDENT_PROFILES : "is"
+    USERS ||--o| DOCTOR_PROFILES : "is"
+    STUDENT_PROFILES ||--o{ MEDICAL_RECORDS : "has"
+    DOCTOR_PROFILES ||--o{ MEDICAL_RECORDS : "creates"
+    STUDENT_PROFILES ||--o{ APPOINTMENTS : "books"
+    DOCTOR_PROFILES ||--o{ APPOINTMENTS : "handles"
+    DOCTOR_PROFILES ||--o{ CERTIFICATES : "issues"
+    STUDENT_PROFILES ||--o{ CERTIFICATES : "receives"
+    USERS ||--o{ NOTIFICATIONS : "receives"

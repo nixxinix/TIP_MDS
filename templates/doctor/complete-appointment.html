@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Complete Appointment - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Complete Appointment</h1>
+            <div class="top-bar-right">
+                <a href="{% url 'doctors:appointment_detail' appointment.id %}" class="btn-secondary" style="margin-right: 15px;">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container" style="max-width: 800px;">
+            <h2 style="margin-bottom: 10px;">
+                <i class="fas fa-check-circle"></i> Complete Appointment
+            </h2>
+            <p style="color: #7f8c8d; margin-bottom: 30px;">
+                Mark this appointment as completed and add any final notes.
+            </p>
+
+            <!-- Appointment Summary -->
+            <div class="card" style="margin-bottom: 25px; background: #f8f9fa;">
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                    <div>
+                        <label style="font-weight: 600; color: #7f8c8d; font-size: 13px;">Ticket Number</label>
+                        <p style="margin: 5px 0; font-weight: 600;">{{ appointment.ticket_number }}</p>
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: #7f8c8d; font-size: 13px;">Student</label>
+                        <p style="margin: 5px 0;">{{ appointment.student.user.get_full_name }}</p>
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: #7f8c8d; font-size: 13px;">Service</label>
+                        <p style="margin: 5px 0;">{{ appointment.get_service_type_display }}</p>
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: #7f8c8d; font-size: 13px;">Date</label>
+                        <p style="margin: 5px 0;">{{ appointment.preferred_date|date:"F d, Y" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completion Form -->
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label>Completion Notes (Optional)</label>
+                    <textarea name="notes" 
+                              class="form-control" 
+                              rows="6" 
+                              placeholder="Add any notes about the appointment completion, treatment provided, or follow-up recommendations...">{{ appointment.notes }}</textarea>
+                    <small style="color: #7f8c8d;">
+                        These notes will be saved in the appointment record.
+                    </small>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-check-circle"></i> Mark as Completed
+                    </button>
+                    <a href="{% url 'doctors:appointment_detail' appointment.id %}" class="btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

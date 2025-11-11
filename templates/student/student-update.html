@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Update Information - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Student Portal</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:dashboard' %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:register' %}">
+                    <i class="fas fa-file-medical"></i>
+                    <span>New Student Form</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'students:update' %}">
+                    <i class="fas fa-edit"></i>
+                    <span>Update Information</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:appointments' %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:records' %}">
+                    <i class="fas fa-folder-open"></i>
+                    <span>My Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:certificates' %}">
+                    <i class="fas fa-certificate"></i>
+                    <span>Certificates</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Update Student Information</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                {% if unread_notifications_count > 0 %}
+                <a href="{% url 'notifications:list' %}" class="notification-icon" style="position: relative; margin-right: 15px; color: #667eea; font-size: 20px;">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">{{ unread_notifications_count }}</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <h3><i class="fas fa-edit"></i> Update Student Information</h3>
+            
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 25px; border-radius: 6px;">
+                <p style="margin: 0; color: #856404;"><i class="fas fa-info-circle"></i> <strong>Note:</strong> Student ID and Full Name cannot be changed. For major changes to medical/dental history, please use the "Request Update" feature which requires doctor approval.</p>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                
+                <h4 style="margin: 20px 0 15px; color: #667eea;">Read-Only Information</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Student ID (Read-only)</label>
+                        <input type="text" class="form-control" value="{{ student_profile.student_id }}" readonly style="background: #f0f0f0;">
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name (Read-only)</label>
+                        <input type="text" class="form-control" value="{{ student_profile.user.get_full_name }}" readonly style="background: #f0f0f0;">
+                    </div>
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Contact Information</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Contact Number</label>
+                        {{ form.contact_number }}
+                        {% if form.contact_number.errors %}
+                            <small style="color: #dc3545;">{{ form.contact_number.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Email (Read-only)</label>
+                        <input type="email" class="form-control" value="{{ student_profile.user.email }}" readonly style="background: #f0f0f0;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Current Address</label>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                        <small style="color: #dc3545;">{{ form.address.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Emergency Contact Update</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Emergency Contact Name</label>
+                        {{ form.emergency_contact_name }}
+                        {% if form.emergency_contact_name.errors %}
+                            <small style="color: #dc3545;">{{ form.emergency_contact_name.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Relationship</label>
+                        {{ form.emergency_contact_relationship }}
+                        {% if form.emergency_contact_relationship.errors %}
+                            <small style="color: #dc3545;">{{ form.emergency_contact_relationship.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Emergency Contact Number</label>
+                        {{ form.emergency_contact_number }}
+                        {% if form.emergency_contact_number.errors %}
+                            <small style="color: #dc3545;">{{ form.emergency_contact_number.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Emergency Contact Address</label>
+                        {{ form.emergency_contact_address }}
+                        {% if form.emergency_contact_address.errors %}
+                            <small style="color: #dc3545;">{{ form.emergency_contact_address.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Medical Updates</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Current Height (cm)</label>
+                        {{ form.height_cm }}
+                        {% if form.height_cm.errors %}
+                            <small style="color: #dc3545;">{{ form.height_cm.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>Current Weight (kg)</label>
+                        {{ form.weight_kg }}
+                        {% if form.weight_kg.errors %}
+                            <small style="color: #dc3545;">{{ form.weight_kg.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Known Allergies</label>
+                    {{ form.allergies }}
+                    {% if form.allergies.errors %}
+                        <small style="color: #dc3545;">{{ form.allergies.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Current Medications</label>
+                    {{ form.current_medications }}
+                    {% if form.current_medications.errors %}
+                        <small style="color: #dc3545;">{{ form.current_medications.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <h4 style="margin: 30px 0 15px; color: #667eea;">Dental Updates</h4>
+                <div class="form-group">
+                    <label>Oral Habits</label>
+                    {{ form.oral_habits }}
+                    {% if form.oral_habits.errors %}
+                        <small style="color: #dc3545;">{{ form.oral_habits.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 25px 0; border-radius: 6px;">
+                    <p style="margin: 0; color: #0d47a1;"><i class="fas fa-lightbulb"></i> <strong>Need to update medical/dental history?</strong> Use the <a href="{% url 'students:request_update' %}" style="color: #1976d2; font-weight: 600;">Request Update</a> feature for changes that require doctor approval.</p>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 40px;">
+                        <i class="fas fa-check"></i> Save Changes
+                    </button>
+                    <a href="{% url 'students:dashboard' %}" class="btn-secondary" style="text-decoration: none; display: inline-block;">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

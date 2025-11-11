@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Templates & Documents - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Templates & Documents</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                {% if unread_notifications_count > 0 %}
+                <a href="{% url 'notifications:list' %}" class="notification-icon" style="position: relative; margin-right: 15px; color: #667eea; font-size: 20px; text-decoration: none;">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">{{ unread_notifications_count }}</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <h3><i class="fas fa-file-alt"></i> Medical Templates & Documents</h3>
+            
+            <div class="modules-grid" style="margin-top: 30px;">
+                <!-- Medical Certificate Card -->
+                <a href="{% url 'doctors:generate_certificate' %}" style="text-decoration: none;">
+                    <div class="module-card blue" style="cursor: pointer;">
+                        <div class="module-icon">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                        <h4>Medical Certificate</h4>
+                        <p>Generate medical certificates for students</p>
+                    </div>
+                </a>
+
+                <!-- E-Prescription Card -->
+                <a href="{% url 'doctors:generate_prescription' %}" style="text-decoration: none;">
+                    <div class="module-card green" style="cursor: pointer;">
+                        <div class="module-icon">
+                            <i class="fas fa-prescription"></i>
+                        </div>
+                        <h4>E-Prescription</h4>
+                        <p>Create electronic prescriptions</p>
+                    </div>
+                </a>
+
+                <!-- Medical Clearance Card -->
+                <a href="{% url 'doctors:generate_clearance' %}" style="text-decoration: none;">
+                    <div class="module-card cyan" style="cursor: pointer;">
+                        <div class="module-icon">
+                            <i class="fas fa-file-medical"></i>
+                        </div>
+                        <h4>Medical Clearance</h4>
+                        <p>Issue medical clearance documents</p>
+                    </div>
+                </a>
+
+                <!-- Dental Certificate Card -->
+                <a href="{% url 'doctors:generate_dental_certificate' %}" style="text-decoration: none;">
+                    <div class="module-card yellow" style="cursor: pointer;">
+                        <div class="module-icon">
+                            <i class="fas fa-tooth"></i>
+                        </div>
+                        <h4>Dental Certificate</h4>
+                        <p>Generate dental health certificates</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="table-container" style="margin-top: 30px;">
+            <h3 style="margin-bottom: 20px;">Recently Issued Certificates</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Certificate Number</th>
+                        <th>Date Issued</th>
+                        <th>Student ID</th>
+                        <th>Student Name</th>
+                        <th>Type</th>
+                        <th>Doctor</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for certificate in recent_certificates %}
+                    <tr>
+                        <td><strong>{{ certificate.certificate_number }}</strong></td>
+                        <td>{{ certificate.date_issued|date:"M d, Y" }}</td>
+                        <td>{{ certificate.student.student_id }}</td>
+                        <td>{{ certificate.student.user.get_full_name }}</td>
+                        <td>{{ certificate.title }}</td>
+                        <td>{{ certificate.doctor.get_full_name|default:"N/A" }}</td>
+                        <td>
+                            {% if certificate.status == 'active' %}
+                            <span class="status-badge status-approved">Active</span>
+                            {% elif certificate.status == 'expired' %}
+                            <span class="status-badge status-declined">Expired</span>
+                            {% elif certificate.status == 'revoked' %}
+                            <span class="status-badge status-declined">Revoked</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if certificate.pdf_file %}
+                            <a href="{{ certificate.pdf_file.url }}" class="action-btn btn-view" target="_blank">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                            {% else %}
+                            <span style="color: #95a5a6;">Not available</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: #95a5a6; padding: 30px;">
+                            <i class="fas fa-certificate" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                            No certificates issued yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+{% endblock %}

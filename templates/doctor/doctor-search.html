@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Records - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Student Records</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                {% if unread_notifications_count > 0 %}
+                <a href="{% url 'notifications:list' %}" class="notification-icon" style="position: relative; margin-right: 15px; color: #667eea; font-size: 20px; text-decoration: none;">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">{{ unread_notifications_count }}</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container" style="margin-bottom: 25px;">
+            <h3><i class="fas fa-search"></i> Search Student Records</h3>
+            <form method="GET">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Student ID</label>
+                        <input type="text" name="student_id" class="form-control" placeholder="Enter Student ID (e.g., 2310346)" value="{{ request.GET.student_id }}">
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: flex-end;">
+                        <button type="submit" class="btn-primary" style="width: auto; padding: 12px 30px;">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {% if student_profile %}
+        <div class="table-container">
+            <h3 style="margin-bottom: 20px;">Student Information</h3>
+            
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div>
+                        <strong>Student ID:</strong> {{ student_profile.student_id }}
+                    </div>
+                    <div>
+                        <strong>Name:</strong> {{ student_profile.user.get_full_name }}
+                    </div>
+                    <div>
+                        <strong>Program:</strong> {{ student_profile.get_program_display }}
+                    </div>
+                    <div>
+                        <strong>Year Level:</strong> {{ student_profile.get_year_level_display }}
+                    </div>
+                    <div>
+                        <strong>Contact:</strong> {{ student_profile.contact_number }}
+                    </div>
+                    <div>
+                        <strong>Email:</strong> {{ student_profile.user.email }}
+                    </div>
+                    <div>
+                        <strong>Blood Type:</strong> {{ student_profile.get_blood_type_display }}
+                    </div>
+                    <div>
+                        <strong>Status:</strong> 
+                        {% if student_profile.is_verified %}
+                        <span class="status-badge status-approved">Verified</span>
+                        {% else %}
+                        <span class="status-badge status-pending">Unverified</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <a href="{% url 'doctors:create_record' student_profile.student_id %}" class="btn-primary" style="display: inline-block; padding: 12px 24px; text-decoration: none;">
+                    <i class="fas fa-plus"></i> Create New Record
+                </a>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'official-records')">Official Records</button>
+                <button class="tab" onclick="switchTab(event, 'pending-updates')">Pending Updates</button>
+                <button class="tab" onclick="switchTab(event, 'appointments-history')">Appointments</button>
+            </div>
+
+            <div id="official-records" class="tab-content active">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Chief Complaint</th>
+                            <th>Diagnosis</th>
+                            <th>Doctor</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in medical_records %}
+                        <tr>
+                            <td>{{ record.visit_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if record.record_type == 'medical' %}
+                                <span style="color: #2196f3;"><i class="fas fa-stethoscope"></i> Medical</span>
+                                {% else %}
+                                <span style="color: #00bcd4;"><i class="fas fa-tooth"></i> Dental</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ record.chief_complaint|truncatewords:8 }}</td>
+                            <td>{{ record.diagnosis|truncatewords:10 }}</td>
+                            <td>{{ record.doctor.get_full_name|default:"N/A" }}</td>
+                            <td>
+                                <button class="action-btn btn-view">View</button>
+                                <button class="action-btn btn-approve">Edit</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #95a5a6; padding: 30px;">
+                                No medical records found for this student.
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                        {% for record in dental_records %}
+                        <tr>
+                            <td>{{ record.visit_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span style="color: #00bcd4;"><i class="fas fa-tooth"></i> Dental</span>
+                            </td>
+                            <td>{{ record.chief_complaint|truncatewords:8 }}</td>
+                            <td>{{ record.diagnosis|truncatewords:10 }}</td>
+                            <td>{{ record.doctor.get_full_name|default:"N/A" }}</td>
+                            <td>
+                                <button class="action-btn btn-view">View</button>
+                                <button class="action-btn btn-approve">Edit</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="pending-updates" class="tab-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Submitted</th>
+                            <th>Field</th>
+                            <th>Current Value</th>
+                            <th>Requested Value</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in update_requests %}
+                        <tr>
+                            <td>{{ request.created_at|date:"M d, Y" }}</td>
+                            <td><strong>{{ request.field_name }}</strong></td>
+                            <td>{{ request.old_value|truncatewords:8|default:"N/A" }}</td>
+                            <td>{{ request.new_value|truncatewords:8 }}</td>
+                            <td>
+                                {% if request.status == 'pending' %}
+                                <span class="status-badge status-pending">Pending</span>
+                                {% elif request.status == 'approved' %}
+                                <span class="status-badge status-approved">Approved</span>
+                                {% elif request.status == 'declined' %}
+                                <span class="status-badge status-declined">Declined</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if request.status == 'pending' %}
+                                <button class="action-btn btn-view">View</button>
+                                <button class="action-btn btn-approve">Approve</button>
+                                <button class="action-btn btn-reject">Decline</button>
+                                {% else %}
+                                <button class="action-btn btn-view">View</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #95a5a6; padding: 30px;">
+                                No pending update requests.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="appointments-history" class="tab-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ticket Number</th>
+                            <th>Date</th>
+                            <th>Service</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                        <tr>
+                            <td><strong>{{ appointment.ticket_number }}</strong></td>
+                            <td>{{ appointment.preferred_date|date:"M d, Y" }}</td>
+                            <td>{{ appointment.get_service_type_display }}</td>
+                            <td>{{ appointment.get_preferred_time_slot_display }}</td>
+                            <td>
+                                {% if appointment.status == 'pending' %}
+                                <span class="status-badge status-pending">Pending</span>
+                                {% elif appointment.status == 'approved' %}
+                                <span class="status-badge status-approved">Approved</span>
+                                {% elif appointment.status == 'completed' %}
+                                <span class="status-badge status-approved">Completed</span>
+                                {% elif appointment.status == 'cancelled' %}
+                                <span class="status-badge status-declined">Cancelled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="action-btn btn-view">View</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #95a5a6; padding: 30px;">
+                                No appointments found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% elif request.GET.student_id %}
+        <div style="background: #ffebee; border-left: 4px solid #e74c3c; padding: 20px; border-radius: 6px;">
+            <p style="margin: 0; color: #c62828;">
+                <i class="fas fa-exclamation-circle"></i> 
+                <strong>Student not found.</strong> No student found with ID: <strong>{{ request.GET.student_id }}</strong>
+            </p>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 60px 20px; color: #95a5a6;">
+            <i class="fas fa-search" style="font-size: 64px; margin-bottom: 20px; display: block;"></i>
+            <h3 style="color: #7f8c8d;">Search for a student to view their records</h3>
+            <p>Enter a student ID in the search box above to get started.</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+
+<script>
+function switchTab(event, tabId) {
+    const container = event.target.closest('.table-container');
+    const tabContents = container.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    const tabs = container.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}

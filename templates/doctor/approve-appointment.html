@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Approve Appointment - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Approve Appointment</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <a href="{% url 'doctors:appointments' %}" class="btn-secondary" style="display: inline-block; padding: 10px 20px; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Back to Appointments
+            </a>
+        </div>
+
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+            <h4 style="margin: 0 0 15px 0;">Appointment Details</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div>
+                    <strong>Ticket Number:</strong><br>
+                    <span style="font-size: 18px; color: #667eea; font-weight: 600;">{{ appointment.ticket_number }}</span>
+                </div>
+                <div>
+                    <strong>Student ID:</strong><br>
+                    {{ appointment.student.student_id }}
+                </div>
+                <div>
+                    <strong>Student Name:</strong><br>
+                    {{ appointment.student.user.get_full_name }}
+                </div>
+                <div>
+                    <strong>Service:</strong><br>
+                    {{ appointment.get_service_type_display }}
+                </div>
+                <div>
+                    <strong>Preferred Date:</strong><br>
+                    {{ appointment.preferred_date|date:"F d, Y" }}
+                </div>
+                <div>
+                    <strong>Time Slot:</strong><br>
+                    {{ appointment.get_preferred_time_slot_display }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-container" style="margin-bottom: 25px;">
+            <h4 style="margin: 0 0 15px 0; color: #667eea;">Reason for Appointment</h4>
+            <div style="background: white; padding: 15px; border: 1px solid #e0e6ed; border-radius: 8px;">
+                <p style="margin: 0; white-space: pre-line;">{{ appointment.reason }}</p>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <h3><i class="fas fa-check-circle"></i> Approve & Schedule Appointment</h3>
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Assign Doctor <span style="color: #e74c3c;">*</span></label>
+                        {{ form.doctor }}
+                        {% if form.doctor.errors %}
+                            <small style="color: #dc3545;">{{ form.doctor.errors.0 }}</small>
+                        {% endif %}
+                        <small style="color: #7f8c8d;">Select doctor to handle this appointment</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Scheduled Date & Time <span style="color: #e74c3c;">*</span></label>
+                        {{ form.actual_datetime }}
+                        {% if form.actual_datetime.errors %}
+                            <small style="color: #dc3545;">{{ form.actual_datetime.errors.0 }}</small>
+                        {% endif %}
+                        <small style="color: #7f8c8d;">Set exact appointment date and time</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Doctor's Notes / Instructions</label>
+                    {{ form.doctor_notes }}
+                    {% if form.doctor_notes.errors %}
+                        <small style="color: #dc3545;">{{ form.doctor_notes.errors.0 }}</small>
+                    {% endif %}
+                    <small style="color: #7f8c8d;">Add any instructions or notes for the student (optional)</small>
+                </div>
+
+                <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; margin: 25px 0; border-radius: 6px;">
+                    <p style="margin: 0; color: #2e7d32;">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Note:</strong> Student will receive an email notification once the appointment is approved with the scheduled date and time.
+                    </p>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 40px;">
+                        <i class="fas fa-check"></i> Approve Appointment
+                    </button>
+                    <a href="{% url 'doctors:appointments' %}" class="btn-secondary" style="text-decoration: none; display: inline-block;">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

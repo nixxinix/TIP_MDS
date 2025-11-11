@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notifications - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>
+                        {% if user.role == 'student' %}Student Portal{% else %}Healthcare Management{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% if user.role == 'student' %}{% url 'students:dashboard' %}{% else %}{% url 'doctors:dashboard' %}{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'notifications:list' %}">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'notifications:preferences' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Preferences</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Notifications</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <a href="{% if user.role == 'student' %}{% url 'students:dashboard' %}{% else %}{% url 'doctors:dashboard' %}{% endif %}" class="btn-secondary" style="display: inline-block; padding: 10px 20px; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            {% if unread_notifications %}
+            <button onclick="markAllRead()" class="btn-primary" style="width: auto; padding: 10px 20px;">
+                <i class="fas fa-check-double"></i> Mark All as Read
+            </button>
+            {% endif %}
+        </div>
+
+        {% if unread_notifications %}
+        <div class="table-container" style="margin-bottom: 30px;">
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-bell" style="color: #667eea;"></i> Unread Notifications ({{ unread_notifications.count }})</h3>
+            
+            {% for notification in unread_notifications %}
+            <div style="background: {% if notification.priority == 'urgent' %}#ffebee{% elif notification.priority == 'high' %}#fff3e0{% else %}#f8f9fa{% endif %}; padding: 20px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid {% if notification.priority == 'urgent' %}#e74c3c{% elif notification.priority == 'high' %}#ffc107{% else %}#667eea{% endif %};">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-size: 20px;">
+                                {% if notification.notification_type == 'appointment_approved' %}
+                                    <i class="fas fa-calendar-check" style="color: #4caf50;"></i>
+                                {% elif notification.notification_type == 'request_approved' %}
+                                    <i class="fas fa-check-circle" style="color: #4caf50;"></i>
+                                {% elif notification.notification_type == 'request_declined' %}
+                                    <i class="fas fa-times-circle" style="color: #e74c3c;"></i>
+                                {% elif notification.notification_type == 'certificate_issued' %}
+                                    <i class="fas fa-certificate" style="color: #2196f3;"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle" style="color: #667eea;"></i>
+                                {% endif %}
+                            </span>
+                            <h4 style="margin: 0; color: #2c3e50;">{{ notification.title }}</h4>
+                            {% if notification.priority == 'urgent' %}
+                            <span style="background: #e74c3c; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">URGENT</span>
+                            {% elif notification.priority == 'high' %}
+                            <span style="background: #ffc107; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">HIGH</span>
+                            {% endif %}
+                        </div>
+                        <p style="margin: 0 0 10px 0; color: #5a6c7d;">{{ notification.message }}</p>
+                        <small style="color: #95a5a6;">
+                            <i class="fas fa-clock"></i> {{ notification.created_at|timesince }} ago
+                        </small>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        {% if notification.action_url %}
+                        <a href="{{ notification.action_url }}" class="action-btn btn-view">
+                            {{ notification.action_label|default:"View" }}
+                        </a>
+                        {% endif %}
+                        <form method="POST" action="{% url 'notifications:mark_read' notification.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="action-btn btn-approve" style="background: #e8f5e9; color: #2e7d32;">
+                                <i class="fas fa-check"></i> Mark Read
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if read_notifications %}
+        <div class="table-container">
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-check" style="color: #95a5a6;"></i> Read Notifications</h3>
+            
+            {% for notification in read_notifications %}
+            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #e0e6ed; opacity: 0.7;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-size: 20px; color: #95a5a6;">
+                                {% if notification.notification_type == 'appointment_approved' %}
+                                    <i class="fas fa-calendar-check"></i>
+                                {% elif notification.notification_type == 'request_approved' %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% elif notification.notification_type == 'request_declined' %}
+                                    <i class="fas fa-times-circle"></i>
+                                {% elif notification.notification_type == 'certificate_issued' %}
+                                    <i class="fas fa-certificate"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle"></i>
+                                {% endif %}
+                            </span>
+                            <h4 style="margin: 0; color: #7f8c8d;">{{ notification.title }}</h4>
+                        </div>
+                        <p style="margin: 0 0 10px 0; color: #95a5a6;">{{ notification.message }}</p>
+                        <small style="color: #bdc3c7;">
+                            <i class="fas fa-clock"></i> {{ notification.created_at|timesince }} ago
+                        </small>
+                    </div>
+                    {% if notification.action_url %}
+                    <a href="{{ notification.action_url }}" class="action-btn btn-view">
+                        {{ notification.action_label|default:"View" }}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if not unread_notifications and not read_notifications %}
+        <div style="text-align: center; padding: 60px 20px; color: #95a5a6;">
+            <i class="fas fa-bell-slash" style="font-size: 64px; margin-bottom: 20px; display: block;"></i>
+            <h3 style="color: #7f8c8d;">No notifications yet</h3>
+            <p>You're all caught up! Notifications will appear here when there's something new.</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+
+<script>
+function markAllRead() {
+    if (confirm('Mark all notifications as read?')) {
+        fetch("{% url 'notifications:mark_all_read' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            }
+        }).then(response => {
+            if (response.ok) {
+                location.reload();
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

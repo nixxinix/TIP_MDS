@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Doctor Dashboard - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'search' %}active{% endif %}" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'pending' %}active{% endif %}" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'appointments' %}active{% endif %}" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'templates' %}active{% endif %}" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Doctor/Admin Portal</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                {% if unread_notifications_count > 0 %}
+                <a href="{% url 'notifications:list' %}" class="notification-icon" style="position: relative; margin-right: 15px; color: #667eea; font-size: 20px; text-decoration: none;">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">{{ unread_notifications_count }}</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="welcome-section">
+            <h2>Welcome to TIP MDS EMR</h2>
+            <p>Your comprehensive Electronic Medical Records system. Manage patient information, appointments, and medical data with ease and security.</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Total Patients</h3>
+                    <div class="stat-number">{{ total_patients }}</div>
+                </div>
+                <div class="stat-icon blue">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Today's Appointments</h3>
+                    <div class="stat-number">{{ today_appointments }}</div>
+                </div>
+                <div class="stat-icon green">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Pending Requests</h3>
+                    <div class="stat-number">{{ pending_requests }}</div>
+                </div>
+                <div class="stat-icon orange">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Active Cases</h3>
+                    <div class="stat-number">{{ active_cases }}</div>
+                </div>
+                <div class="stat-icon purple">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="modules-section">
+            <h3>System Modules</h3>
+            <div class="modules-grid">
+                <a href="{% url 'doctors:search' %}" style="text-decoration: none;">
+                    <div class="module-card blue" style="cursor: pointer;">
+                        <div class="module-icon">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <h4>Patient Registration</h4>
+                        <p>Register new patients and manage personal details</p>
+                    </div>
+                </a>
+
+                <a href="{% url 'doctors:search' %}" style="text-decoration: none;">
+                    <div class="module-card green" style="cursor: pointer;">
+                        <div class="module-icon">
+                            <i class="fas fa-notes-medical"></i>
+                        </div>
+                        <h4>Medical History</h4>
+                        <p>View and update patient medical records</p>
+                    </div>
+                </a>
+
+                <a href="{% url 'doctors:appointments' %}" style="text-decoration: none;">
+                    <div class="module-card cyan" style="cursor: pointer;">
+                        <div class="module-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h4>Appointment Scheduling</h4>
+                        <p>Schedule and manage patient appointments</p>
+                    </div>
+                </a>
+
+                <a href="{% url 'doctors:templates' %}" style="text-decoration: none;">
+                    <div class="module-card yellow" style="cursor: pointer;">
+                        <div class="module-icon">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <h4>Laboratory Results</h4>
+                        <p>Manage and track laboratory test results</p>
+                    </div>
+                </a>
+
+                <a href="{% url 'doctors:templates' %}" style="text-decoration: none;">
+                    <div class="module-card pink" style="cursor: pointer;">
+                        <div class="module-icon">
+                            <i class="fas fa-stethoscope"></i>
+                        </div>
+                        <h4>Doctor Notes</h4>
+                        <p>Create and manage clinical notes and observations</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        {% if recent_appointments %}
+        <div class="table-container" style="margin-top: 30px;">
+            <h3 style="margin-bottom: 20px;">Recent Appointments</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticket Number</th>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Service</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in recent_appointments %}
+                    <tr>
+                        <td><strong>{{ appointment.ticket_number }}</strong></td>
+                        <td>{{ appointment.student.student_id }}</td>
+                        <td>{{ appointment.student.user.get_full_name }}</td>
+                        <td>{{ appointment.get_service_type_display }}</td>
+                        <td>{{ appointment.preferred_date|date:"M d, Y" }}</td>
+                        <td>
+                            {% if appointment.status == 'pending' %}
+                            <span class="status-badge status-pending">Pending</span>
+                            {% elif appointment.status == 'approved' %}
+                            <span class="status-badge status-approved">Approved</span>
+                            {% elif appointment.status == 'completed' %}
+                            <span class="status-badge status-approved">Completed</span>
+                            {% elif appointment.status == 'cancelled' %}
+                            <span class="status-badge status-declined">Cancelled</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'doctors:appointments' %}" class="action-btn btn-view">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        {% if pending_update_requests %}
+        <div class="table-container" style="margin-top: 30px;">
+            <h3 style="margin-bottom: 20px;">Pending Update Requests</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Submitted</th>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Field</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in pending_update_requests %}
+                    <tr>
+                        <td>{{ request.created_at|date:"M d, Y" }}</td>
+                        <td>{{ request.student.student_id }}</td>
+                        <td>{{ request.student.user.get_full_name }}</td>
+                        <td>{{ request.field_name }}</td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                        <td>
+                            <a href="{% url 'doctors:pending' %}" class="action-btn btn-view">Review</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,160 @@
+.dashboard {
+    display: none;
+    min-height: 100vh;
+}
+
+.dashboard.active {
+    display: flex;
+}
+
+/* Main Content Area */
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+}
+
+/* Top Bar */
+.top-bar {
+    background: var(--bg-primary);
+    padding: 15px 25px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.page-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.date-display {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.logout-btn {
+    padding: 8px 20px;
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all var(--transition-normal);
+}
+
+.logout-btn:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.logout-btn i {
+    margin-right: 5px;
+}
+
+/* Welcome Section */
+.welcome-section {
+    background: var(--bg-primary);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 25px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.welcome-section h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.welcome-section p {
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Content Sections */
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.tab {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: all var(--transition-normal);
+}
+
+.tab:hover {
+    color: var(--primary-color);
+}
+
+.tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Modules Section */
+.modules-section {
+    margin-top: 30px;
+}
+
+.modules-section h3 {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}

@@ -1,0 +1,94 @@
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px;
+}
+
+.login-box {
+    background: white;
+    padding: 40px;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 420px;
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logo-section {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.logo-icon {
+    width: 70px;
+    height: 70px;
+    background: var(--primary-color);
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.logo-icon i {
+    font-size: 32px;
+    color: white;
+}
+
+.login-box h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.login-box p {
+    color: var(--text-muted);
+    margin-bottom: 30px;
+}
+
+.role-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.role-btn {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    background: white;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.role-btn:hover {
+    border-color: var(--primary-color);
+    background: #f0f3ff;
+}
+
+.role-btn.active {
+    border-color: var(--primary-color);
+    background: #f0f3ff;
+    color: var(--primary-color);
+}
+
+.role-btn i {
+    margin-right: 5px;
+}

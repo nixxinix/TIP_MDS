@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Request Update - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Student Portal</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:dashboard' %}">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:register' %}">
+                    <i class="fas fa-file-medical"></i>
+                    <span>New Student Form</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:update' %}">
+                    <i class="fas fa-edit"></i>
+                    <span>Update Information</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:appointments' %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'students:records' %}">
+                    <i class="fas fa-folder-open"></i>
+                    <span>My Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'students:certificates' %}">
+                    <i class="fas fa-certificate"></i>
+                    <span>Certificates</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Request Information Update</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                {% if unread_notifications_count > 0 %}
+                <a href="{% url 'notifications:list' %}" class="notification-icon" style="position: relative; margin-right: 15px; color: #667eea; font-size: 20px;">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">{{ unread_notifications_count }}</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <a href="{% url 'students:records' %}" class="btn-secondary" style="display: inline-block; padding: 10px 20px; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Back to Records
+            </a>
+        </div>
+
+        <div class="form-container">
+            <h3><i class="fas fa-edit"></i> Request Information Update</h3>
+
+            <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 20px; margin-bottom: 25px; border-radius: 6px;">
+                <h4 style="margin: 0 0 10px 0; color: #0d47a1;"><i class="fas fa-info-circle"></i> Important Information</h4>
+                <ul style="margin: 10px 0 0 0; padding-left: 20px; color: #0d47a1;">
+                    <li>Updates to medical and dental history require doctor approval</li>
+                    <li>Requests will be reviewed within <strong>7 days</strong></li>
+                    <li>After 7 days, pending requests will automatically expire</li>
+                    <li>You will be notified once your request is approved or declined</li>
+                    <li>Please provide supporting documents if available</li>
+                </ul>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label>Field to Update <span style="color: #e74c3c;">*</span></label>
+                    {{ form.field_name }}
+                    {% if form.field_name.errors %}
+                        <small style="color: #dc3545;">{{ form.field_name.errors.0 }}</small>
+                    {% endif %}
+                    <small style="color: #7f8c8d;">Select which information you want to update</small>
+                </div>
+
+                <div class="form-group">
+                    <label>New Value <span style="color: #e74c3c;">*</span></label>
+                    {{ form.new_value }}
+                    {% if form.new_value.errors %}
+                        <small style="color: #dc3545;">{{ form.new_value.errors.0 }}</small>
+                    {% endif %}
+                    <small style="color: #7f8c8d;">Enter the new/updated information</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Reason for Update <span style="color: #e74c3c;">*</span></label>
+                    {{ form.reason }}
+                    {% if form.reason.errors %}
+                        <small style="color: #dc3545;">{{ form.reason.errors.0 }}</small>
+                    {% endif %}
+                    <small style="color: #7f8c8d;">Explain why this update is needed</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Supporting Document (Optional)</label>
+                    {{ form.supporting_document }}
+                    {% if form.supporting_document.errors %}
+                        <small style="color: #dc3545;">{{ form.supporting_document.errors.0 }}</small>
+                    {% endif %}
+                    <small style="color: #7f8c8d;">Upload medical certificates, test results, or other relevant documents (PDF, JPG, PNG)</small>
+                </div>
+
+                <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 25px 0; border-radius: 6px;">
+                    <p style="margin: 0; color: #856404;">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Note:</strong> Make sure all information is accurate. False or misleading information may result in rejection of your request.
+                    </p>
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 40px;">
+                        <i class="fas fa-paper-plane"></i> Submit Request
+                    </button>
+                    <a href="{% url 'students:records' %}" class="btn-secondary" style="text-decoration: none; display: inline-block;">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

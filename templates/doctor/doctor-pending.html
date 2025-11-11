@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pending Requests - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Pending Requests</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                {% if unread_notifications_count > 0 %}
+                <a href="{% url 'notifications:list' %}" class="notification-icon" style="position: relative; margin-right: 15px; color: #667eea; font-size: 20px; text-decoration: none;">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge" style="position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">{{ unread_notifications_count }}</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h3 style="margin-bottom: 20px;"><i class="fas fa-clock"></i> Pending Requests</h3>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'pending-forms')">Pending Forms ({{ update_requests.count }})</button>
+                <button class="tab" onclick="switchTab(event, 'pending-appointments')">Pending Appointments ({{ pending_appointments.count }})</button>
+            </div>
+
+            <div id="pending-forms" class="tab-content active">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Submitted</th>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Field</th>
+                            <th>Requested Change</th>
+                            <th>Expires</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in update_requests %}
+                        <tr>
+                            <td>{{ request.created_at|date:"M d, Y h:i A" }}</td>
+                            <td>{{ request.student.student_id }}</td>
+                            <td>{{ request.student.user.get_full_name }}</td>
+                            <td><strong>{{ request.field_name|title }}</strong></td>
+                            <td>{{ request.new_value|truncatewords:10 }}</td>
+                            <td>
+                                {% if request.is_expired %}
+                                <span style="color: #e74c3c;">Expired</span>
+                                {% else %}
+                                {{ request.expiry_date|date:"M d, Y" }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'doctors:search' %}?student_id={{ request.student.student_id }}" class="action-btn btn-view">View</a>
+                                <form method="POST" action="{% url 'doctors:approve_request' request.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-btn btn-approve">Approve</button>
+                                </form>
+                                <a href="{% url 'doctors:decline_request' request.id %}" class="action-btn btn-reject">Decline</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: #95a5a6; padding: 30px;">
+                                <i class="fas fa-check-circle" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                                No pending update requests. Great job!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="pending-appointments" class="tab-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Requested</th>
+                            <th>Ticket Number</th>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Service</th>
+                            <th>Preferred Date</th>
+                            <th>Time Slot</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in pending_appointments %}
+                        <tr>
+                            <td>{{ appointment.created_at|date:"M d, Y h:i A" }}</td>
+                            <td><strong>{{ appointment.ticket_number }}</strong></td>
+                            <td>{{ appointment.student.student_id }}</td>
+                            <td>{{ appointment.student.user.get_full_name }}</td>
+                            <td>{{ appointment.get_service_type_display }}</td>
+                            <td>{{ appointment.preferred_date|date:"M d, Y" }}</td>
+                            <td>{{ appointment.get_preferred_time_slot_display }}</td>
+                            <td>
+                                <a href="{% url 'doctors:approve_appointment' appointment.id %}" class="action-btn btn-view">View</a>
+                                <a href="{% url 'doctors:approve_appointment' appointment.id %}" class="action-btn btn-approve">Approve</a>
+                                <button class="action-btn btn-reject">Decline</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; color: #95a5a6; padding: 30px;">
+                                <i class="fas fa-check-circle" style="font-size: 48px; margin-bottom: 15px; display: block;"></i>
+                                No pending appointment requests. All clear!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if update_requests or pending_appointments %}
+        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin-top: 25px; border-radius: 6px;">
+            <p style="margin: 0; color: #856404;">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Reminder:</strong> Update requests expire after 7 days. Please review and process them promptly to ensure students receive timely responses.
+            </p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+
+<script>
+function switchTab(event, tabId) {
+    const container = event.target.closest('.table-container');
+    const tabContents = container.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    const tabs = container.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}

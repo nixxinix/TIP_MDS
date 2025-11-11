@@ -1,0 +1,122 @@
+tip_mds_emr/  (Django Medical Records System)
+├── [FILE] .env
+├── [FILE] .env.example
+├── [FILE] .gitignore
+├── [MD]   README.md
+├── [DIR]  accounts - User Authentication & Profiles
+│   ├── [PY]   __init__.py
+│   ├── [PY]   admin.py
+│   ├── [PY]   apps.py
+│   ├── [PY]   backends.py
+│   ├── [PY]   context_processors.py
+│   ├── [PY]   decorators.py
+│   ├── [PY]   forms.py
+│   ├── [DIR]  migrations
+│   ├── [PY]   models.py
+│   ├── [PY]   signals.py
+│   ├── [PY]   tests.py
+│   ├── [PY]   urls.py
+│   └── [PY]   views.py
+├── [DIR]  analytics - Analytics & Reporting
+│   ├── [PY]   __init__.py
+│   ├── [PY]   admin.py
+│   ├── [PY]   apps.py
+│   ├── [PY]   exports.py
+│   ├── [DIR]  management
+│   ├── [DIR]  migrations
+│   ├── [PY]   models.py
+│   ├── [PY]   services.py
+│   ├── [PY]   tests.py
+│   ├── [PY]   urls.py
+│   └── [PY]   views.py
+├── [DIR]  appointments - Appointment Scheduling System
+│   ├── [PY]   __init__.py
+│   ├── [PY]   admin.py
+│   ├── [PY]   apps.py
+│   ├── [PY]   forms.py
+│   ├── [DIR]  migrations
+│   ├── [PY]   models.py
+│   ├── [PY]   tests.py
+│   ├── [PY]   urls.py
+│   └── [PY]   views.py
+├── [MMD]  architecture_detailed.mmd
+├── [MMD]  architecture_layered.mmd
+├── [DB]   db.sqlite3
+├── [JSON] directory_structure.json
+├── [TXT]  directory_tree.txt
+├── [DIR]  doctors - Doctor Portal & Medical Services
+│   ├── [PY]   __init__.py
+│   ├── [PY]   admin.py
+│   ├── [PY]   apps.py
+│   ├── [DIR]  migrations
+│   ├── [PY]   models.py
+│   ├── [PY]   tests.py
+│   ├── [PY]   urls.py
+│   └── [PY]   views.py
+├── [PY]   extract_urls.py
+├── [DIR]  fixtures - Test Data & Fixtures
+├── [PY]   generate_architecture.py
+├── [PY]   generate_directory_tree.py
+├── [PY]   generate_usecases.py
+├── [DIR]  logs - Application Logs
+│   └── [FILE] django.log
+├── [PY]   manage.py
+├── [DIR]  media - User Upload Storage
+│   ├── [DIR]  avatars
+│   ├── [DIR]  certificates
+│   ├── [DIR]  documents
+│   └── [DIR]  prescriptions
+├── [DIR]  notifications - Real-time Notification Service
+│   ├── [PY]   __init__.py
+│   ├── [PY]   admin.py
+│   ├── [PY]   apps.py
+│   ├── [DIR]  management
+│   ├── [DIR]  migrations
+│   ├── [PY]   models.py
+│   ├── [PY]   services.py
+│   ├── [PY]   tests.py
+│   ├── [PY]   urls.py
+│   └── [PY]   views.py
+├── [TXT]  requirements.txt
+├── [DIR]  static - Static Assets (CSS/JS/Images)
+│   ├── [DIR]  css
+│   ├── [DIR]  images
+│   └── [DIR]  js
+├── [DIR]  students - Student Management & Records
+│   ├── [PY]   __init__.py
+│   ├── [PY]   admin.py
+│   ├── [PY]   apps.py
+│   ├── [PY]   forms.py
+│   ├── [DIR]  management
+│   ├── [DIR]  migrations
+│   ├── [PY]   models.py
+│   ├── [PY]   signals.py
+│   ├── [PY]   tests.py
+│   ├── [PY]   urls.py
+│   └── [PY]   views.py
+├── [DIR]  templates - HTML Templates
+│   ├── [DIR]  accounts - User Authentication & Profiles
+│   ├── [FILE] base.html
+│   ├── [DIR]  doctor
+│   ├── [DIR]  emails
+│   ├── [DIR]  notifications - Real-time Notification Service
+│   └── [DIR]  student
+├── [DIR]  templates_docs - Document Templates Generator
+│   ├── [PY]   __init__.py
+│   ├── [PY]   admin.py
+│   ├── [PY]   apps.py
+│   ├── [PY]   forms.py
+│   ├── [DIR]  migrations
+│   ├── [PY]   models.py
+│   ├── [PY]   tests.py
+│   ├── [PY]   urls.py
+│   ├── [PY]   utils.py
+│   └── [PY]   views.py
+├── [DIR]  tip_mds_emr - Django Project Settings
+│   ├── [PY]   __init__.py
+│   ├── [PY]   asgi.py
+│   ├── [PY]   settings.py
+│   ├── [PY]   urls.py
+│   └── [PY]   wsgi.py
+├── [JSON] urls_dump.json
+└── [MMD]  usecases.mmd

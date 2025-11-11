@@ -1,0 +1,599 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Settings - TIP MDS EMR{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">System Settings</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        {% if show_profile_completion_alert %}
+        <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-exclamation-triangle" style="color: #ff9800; font-size: 24px;"></i>
+            <div>
+                <strong style="color: #856404;">Profile Incomplete</strong>
+                <p style="margin: 5px 0 0 0; color: #856404;">Please complete your professional information below (Specialization & License Number) and change your temporary password.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-container">
+            <h3><i class="fas fa-cog"></i> System Settings</h3>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(event, 'account-settings')">Account</button>
+                {% if user.is_admin_user %}
+                <button class="tab" onclick="switchTab(event, 'user-management')">User Management</button>
+                <button class="tab" onclick="switchTab(event, 'system-config')">System Configuration</button>
+                {% endif %}
+            </div>
+
+            <div id="account-settings" class="tab-content active">
+                <form method="POST" id="profileForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="profile">
+                    
+                    <h4 style="margin: 20px 0 15px; color: #667eea;">Profile Information</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" class="form-control" value="{{ user.get_full_name }}" readonly style="background: #f0f0f0;">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" value="{{ user.email }}" readonly style="background: #f0f0f0;">
+                        </div>
+                    </div>
+
+                    {% if doctor_profile %}
+                    <h4 style="margin: 30px 0 15px; color: #667eea;">Professional Information 
+                        {% if profile_incomplete %}<span style="color: #f44336; font-size: 14px;">(Required)</span>{% endif %}
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Specialization {% if profile_incomplete %}<span style="color: #f44336;">*</span>{% endif %}</label>
+                            <select name="specialization" class="form-control" {% if not profile_incomplete %}disabled style="background: #f0f0f0;"{% endif %}>
+                                <option value="">--- Select Specialization ---</option>
+                                <option value="general_medicine" {% if doctor_profile.specialization == 'general_medicine' %}selected{% endif %}>General Medicine</option>
+                                <option value="general_dentistry" {% if doctor_profile.specialization == 'general_dentistry' %}selected{% endif %}>General Dentistry</option>
+                                <option value="pediatrics" {% if doctor_profile.specialization == 'pediatrics' %}selected{% endif %}>Pediatrics</option>
+                                <option value="internal_medicine" {% if doctor_profile.specialization == 'internal_medicine' %}selected{% endif %}>Internal Medicine</option>
+                                <option value="orthopedics" {% if doctor_profile.specialization == 'orthopedics' %}selected{% endif %}>Orthopedics</option>
+                                <option value="dermatology" {% if doctor_profile.specialization == 'dermatology' %}selected{% endif %}>Dermatology</option>
+                                <option value="ophthalmology" {% if doctor_profile.specialization == 'ophthalmology' %}selected{% endif %}>Ophthalmology</option>
+                                <option value="ent" {% if doctor_profile.specialization == 'ent' %}selected{% endif %}>ENT (Ear, Nose, Throat)</option>
+                                <option value="orthodontics" {% if doctor_profile.specialization == 'orthodontics' %}selected{% endif %}>Orthodontics</option>
+                                <option value="oral_surgery" {% if doctor_profile.specialization == 'oral_surgery' %}selected{% endif %}>Oral Surgery</option>
+                                <option value="other" {% if doctor_profile.specialization == 'other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>License Number (PRC) {% if profile_incomplete %}<span style="color: #f44336;">*</span>{% endif %}</label>
+                            <input type="text" name="license_number" class="form-control" 
+                                   placeholder="PRC-123456" 
+                                   value="{{ doctor_profile.license_number|default:'' }}"
+                                   {% if not profile_incomplete %}readonly style="background: #f0f0f0;"{% endif %}>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <h4 style="margin: 30px 0 15px; color: #667eea;">Change Password
+                        {% if temp_password %}<span style="color: #f44336; font-size: 14px;">(Required - First Login)</span>{% endif %}
+                    </h4>
+                    
+                    {% if temp_password %}
+                    <div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                        <strong style="color: #1976d2;"><i class="fas fa-info-circle"></i> Temporary Password</strong>
+                        <p style="margin: 5px 0 0 0; color: #1976d2;">Your account was created with a temporary password. Please change it now for security.</p>
+                        <p style="margin: 5px 0 0 0; font-family: monospace; font-size: 16px; background: white; padding: 10px; border-radius: 4px; border: 1px solid #2196f3;">
+                            <strong>Temporary Password:</strong> <span id="tempPwd">{{ temp_password }}</span>
+                            <button type="button" onclick="copyPassword()" style="margin-left: 10px; padding: 5px 10px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" name="current_password" id="currentPassword" class="form-control" 
+                                       placeholder="Enter current password" 
+                                       {% if temp_password %}value="{{ temp_password }}"{% endif %}>
+                                <button type="button" class="password-toggle" onclick="togglePassword('currentPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" name="new_password" id="newPassword" class="form-control" 
+                                       placeholder="Enter new password">
+                                <button type="button" class="password-toggle" onclick="togglePassword('newPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <small style="color: #667eea;">Minimum 8 characters</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <div class="password-input-wrapper">
+                                <input type="password" name="confirm_password" id="confirmPassword" class="form-control" 
+                                       placeholder="Confirm new password">
+                                <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 30px; margin-top: 20px;">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+
+            {% if user.is_admin_user %}
+            <div id="user-management" class="tab-content">
+                <div style="margin-bottom: 20px;">
+                    <a href="{% url 'accounts:add_user' %}" class="btn-primary" style="width: auto; padding: 10px 20px; text-decoration: none; display: inline-block;">
+                        <i class="fas fa-user-plus"></i> Add New Doctor
+                    </a>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Date Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_item in users %}
+                        <tr>
+                            <td>{{ user_item.get_full_name }}</td>
+                            <td>{{ user_item.email }}</td>
+                            <td>
+                                {% if user_item.role == 'doctor' %}
+                                <span style="color: #2196f3;"><i class="fas fa-user-md"></i> Doctor</span>
+                                {% elif user_item.role == 'admin' %}
+                                <span style="color: #9c27b0;"><i class="fas fa-user-shield"></i> Admin</span>
+                                {% elif user_item.role == 'student' %}
+                                <span style="color: #4caf50;"><i class="fas fa-user-graduate"></i> Student</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user_item.is_active %}
+                                <span class="status-badge status-approved">Active</span>
+                                {% else %}
+                                <span class="status-badge status-declined">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user_item.date_joined|date:"M d, Y" }}</td>
+                            <td>
+                                <button class="action-btn btn-view" onclick="viewUser({{ user_item.id }}, '{{ user_item.get_full_name }}', '{{ user_item.email }}', '{{ user_item.role }}', {{ user_item.is_active|lower }}, '{{ user_item.date_joined|date:"M d, Y" }}')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #95a5a6; padding: 30px;">
+                                No users found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="system-config" class="tab-content">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="system_config">
+                    
+                    <h4 style="margin: 20px 0 15px; color: #667eea;">Email Configuration</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>SMTP Host</label>
+                            <input type="text" name="smtp_host" class="form-control" value="smtp.gmail.com">
+                        </div>
+                        <div class="form-group">
+                            <label>SMTP Port</label>
+                            <input type="number" name="smtp_port" class="form-control" value="587">
+                        </div>
+                    </div>
+
+                    <h4 style="margin: 30px 0 15px; color: #667eea;">System Preferences</h4>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="email_notifications" checked>
+                            <span>Enable email notifications for pending requests</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="require_institutional_email" checked>
+                            <span>Require institutional email for student registration</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="two_factor_auth">
+                            <span>Enable two-factor authentication</span>
+                        </label>
+                    </div>
+
+                    <h4 style="margin: 30px 0 15px; color: #667eea;">Backup & Maintenance</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Last Backup</label>
+                            <input type="text" class="form-control" value="{{ today|date:'F d, Y h:i A' }}" readonly style="background: #f0f0f0;">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button type="button" class="btn-primary" style="width: auto; padding: 12px 20px;">
+                                <i class="fas fa-database"></i> Create Backup Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary" style="width: auto; padding: 12px 30px; margin-top: 20px;">
+                        <i class="fas fa-save"></i> Save Configuration
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+
+<!-- User Detail Modal -->
+<div id="userModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3 style="margin-bottom: 20px; color: #667eea;">
+            <i class="fas fa-user"></i> User Details
+        </h3>
+        
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="margin-bottom: 15px;">
+                <strong style="color: #667eea;">Name:</strong>
+                <p id="modalName" style="margin: 5px 0;"></p>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <strong style="color: #667eea;">Email:</strong>
+                <p id="modalEmail" style="margin: 5px 0;"></p>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <strong style="color: #667eea;">Role:</strong>
+                <p id="modalRole" style="margin: 5px 0;"></p>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <strong style="color: #667eea;">Status:</strong>
+                <p id="modalStatus" style="margin: 5px 0;"></p>
+            </div>
+            <div>
+                <strong style="color: #667eea;">Date Joined:</strong>
+                <p id="modalDate" style="margin: 5px 0;"></p>
+            </div>
+        </div>
+        
+        <h4 style="margin-bottom: 15px; color: #667eea;">Admin Actions</h4>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button id="deactivateBtn" class="btn-primary" onclick="confirmDeactivate()" style="background: #f44336; padding: 10px 20px;">
+                <i class="fas fa-ban"></i> <span id="deactivateText">Deactivate Account</span>
+            </button>
+            <button class="btn-primary" onclick="confirmResetPassword()" style="background: #ff9800; padding: 10px 20px;">
+                <i class="fas fa-key"></i> Reset Password
+            </button>
+            <button class="btn-primary" onclick="closeModal()" style="background: #9e9e9e; padding: 10px 20px;">
+                <i class="fas fa-times"></i> Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <h3 style="margin-bottom: 20px; color: #f44336;">
+            <i class="fas fa-exclamation-triangle"></i> Confirm Action
+        </h3>
+        <p id="confirmMessage" style="margin-bottom: 20px; font-size: 16px;"></p>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button class="btn-primary" onclick="closeConfirmModal()" style="background: #9e9e9e; padding: 10px 20px;">
+                Cancel
+            </button>
+            <button id="confirmBtn" class="btn-primary" style="background: #f44336; padding: 10px 20px;">
+                Confirm
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.password-input-wrapper {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    padding: 5px 10px;
+    font-size: 16px;
+}
+
+.password-toggle:hover {
+    color: #5568d3;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    animation: slideDown 0.3s;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.close:hover {
+    color: #000;
+}
+</style>
+
+<script>
+let currentUserId = null;
+let currentUserActive = false;
+
+function togglePassword(inputId, button) {
+    const input = document.getElementById(inputId);
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function copyPassword() {
+    const pwd = document.getElementById('tempPwd').textContent;
+    navigator.clipboard.writeText(pwd).then(() => {
+        alert('Password copied to clipboard!');
+    });
+}
+
+function switchTab(event, tabId) {
+    const container = event.target.closest('.form-container');
+    const tabContents = container.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.remove('active'));
+    
+    const tabs = container.querySelectorAll('.tab');
+    tabs.forEach(tab => tab.classList.remove('active'));
+    
+    document.getElementById(tabId).classList.add('active');
+    event.target.classList.add('active');
+}
+
+function viewUser(userId, name, email, role, isActive, dateJoined) {
+    currentUserId = userId;
+    currentUserActive = isActive;
+    
+    document.getElementById('modalName').textContent = name;
+    document.getElementById('modalEmail').textContent = email;
+    document.getElementById('modalRole').textContent = role.charAt(0).toUpperCase() + role.slice(1);
+    document.getElementById('modalStatus').textContent = isActive ? 'Active' : 'Inactive';
+    document.getElementById('modalDate').textContent = dateJoined;
+    
+    const deactivateBtn = document.getElementById('deactivateBtn');
+    const deactivateText = document.getElementById('deactivateText');
+    if (isActive) {
+        deactivateText.textContent = 'Deactivate Account';
+        deactivateBtn.style.background = '#f44336';
+    } else {
+        deactivateText.textContent = 'Activate Account';
+        deactivateBtn.style.background = '#4caf50';
+    }
+    
+    document.getElementById('userModal').style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('userModal').style.display = 'none';
+}
+
+function confirmDeactivate() {
+    const action = currentUserActive ? 'deactivate' : 'activate';
+    document.getElementById('confirmMessage').textContent = 
+        `Are you sure you want to ${action} this user account? This action can be reversed later.`;
+    
+    document.getElementById('confirmBtn').onclick = function() {
+        deactivateUser();
+    };
+    
+    document.getElementById('confirmModal').style.display = 'block';
+}
+
+function confirmResetPassword() {
+    document.getElementById('confirmMessage').textContent = 
+        'Are you sure you want to reset this user\'s password? A temporary password will be generated.';
+    
+    document.getElementById('confirmBtn').onclick = function() {
+        resetPassword();
+    };
+    
+    document.getElementById('confirmModal').style.display = 'block';
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+}
+
+function deactivateUser() {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/accounts/users/${currentUserId}/deactivate/`;
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    
+    form.appendChild(csrfInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function resetPassword() {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/accounts/users/${currentUserId}/reset-password/`;
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    
+    form.appendChild(csrfInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+window.onclick = function(event) {
+    const userModal = document.getElementById('userModal');
+    const confirmModal = document.getElementById('confirmModal');
+    
+    if (event.target == userModal) {
+        closeModal();
+    }
+    if (event.target == confirmModal) {
+        closeConfirmModal();
+    }
+}
+</script>
+{% endblock %}

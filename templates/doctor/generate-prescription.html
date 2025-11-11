@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Generate E-Prescription - TIP MDS EMR{% endblock %}
+
+{% block extra_css %}
+<style>
+    .btn-remove {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+    .btn-add-medicine {
+        background: #27ae60;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard active">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2>TIP MDS EMR</h2>
+                    <p>Healthcare Management</p>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:dashboard' %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:search' %}">
+                    <i class="fas fa-search"></i>
+                    <span>Student Records</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:pending' %}">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Requests</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:appointments' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Appointments</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{% url 'doctors:templates' %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Templates</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:analytics' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'doctors:settings' %}">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h1 class="page-title">Generate E-Prescription</h1>
+            <div class="top-bar-right">
+                <span class="date-display">{{ today|date:"l, F j, Y" }}</span>
+                <a href="{% url 'accounts:logout' %}" class="logout-btn" style="text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="form-container">
+            <div style="margin-bottom: 20px;">
+                <a href="{% url 'doctors:templates' %}" class="btn-secondary" style="text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Back to Templates
+                </a>
+            </div>
+
+            <h3><i class="fas fa-prescription"></i> E-Prescription Generation Form</h3>
+
+            <form method="POST" id="prescriptionForm">
+                {% csrf_token %}
+
+                <!-- Student Information -->
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                    <h4 style="color: #667eea; margin-bottom: 20px;"><i class="fas fa-user"></i> Student Information</h4>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Student ID *</label>
+                            <input type="text" name="student_id" id="studentId" class="form-control" placeholder="e.g., 2310346" required>
+                            <button type="button" onclick="lookupStudent()" class="btn-primary" style="margin-top: 10px; width: auto; padding: 10px 20px;">
+                                <i class="fas fa-search"></i> Lookup Student
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="studentInfo" style="display: none; margin-top: 20px; padding: 20px; background: white; border-radius: 8px; border: 1px solid #e0e6ed;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" id="studentName" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Age</label>
+                                <input type="text" id="studentAge" class="form-control" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Sex</label>
+                                <input type="text" id="studentSex" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Course/Year</label>
+                                <input type="text" id="studentCourse" class="form-control" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagnosis -->
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                    <h4 style="color: #27ae60; margin-bottom: 20px;"><i class="fas fa-stethoscope"></i> Diagnosis</h4>
+                    <div class="form-group">
+                        <label>Diagnosis/Condition *</label>
+                        <textarea name="diagnosis" class="form-control" rows="3" placeholder="Enter diagnosis or medical condition" required></textarea>
+                    </div>
+                </div>
+
+                <!-- Prescription -->
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                    <h4 style="color: #2196f3; margin-bottom: 20px;"><i class="fas fa-pills"></i> Prescription (Rx)</h4>
+                    
+                    <div id="medicineContainer">
+                        <div class="medicine-row" style="display: grid; grid-template-columns: 2fr 0.8fr 0.7fr 1fr auto; gap: 10px; margin-bottom: 15px; align-items: end;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Medicine Name *</label>
+                                <input type="text" class="form-control medicine-name" placeholder="e.g., Paracetamol 500mg" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Quantity *</label>
+                                <input type="number" class="form-control medicine-quantity" placeholder="1" min="1" value="1" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Unit *</label>
+                                <select class="form-control medicine-unit" required>
+                                    <option value="tab">tab</option>
+                                    <option value="caps">caps</option>
+                                    <option value="ml">ml</option>
+                                    <option value="mg">mg</option>
+                                    <option value="pc">pc</option>
+                                    <option value="pcs">pcs</option>
+                                    <option value="drops">drops</option>
+                                    <option value="tbsp">tbsp</option>
+                                    <option value="tsp">tsp</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Frequency *</label>
+                                <select class="form-control medicine-frequency" required>
+                                    <option value="1x a day">1x a day</option>
+                                    <option value="2x a day">2x a day</option>
+                                    <option value="3x a day">3x a day</option>
+                                    <option value="4x a day">4x a day</option>
+                                    <option value="Every 4 hours">Every 4 hours</option>
+                                    <option value="Every 6 hours">Every 6 hours</option>
+                                    <option value="Every 8 hours">Every 8 hours</option>
+                                    <option value="Before meals">Before meals</option>
+                                    <option value="After meals">After meals</option>
+                                    <option value="As needed">As needed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button type="button" class="btn-remove" onclick="removeMedicine(this)" style="display: none;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-add-medicine" onclick="addMedicine()">
+                        <i class="fas fa-plus"></i> Add Medicine
+                    </button>
+                </div>
+
+                <!-- Instructions/Notes -->
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                    <h4 style="color: #ff9800; margin-bottom: 20px;"><i class="fas fa-notes-medical"></i> Instructions</h4>
+                    <div class="form-group">
+                        <label>Instructions/Remarks</label>
+                        <textarea name="instructions" class="form-control" rows="4" placeholder="Additional instructions or notes"></textarea>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div style="text-align: right;">
+                    <button type="submit" class="btn-primary" style="padding: 15px 40px; font-size: 16px;">
+                        <i class="fas fa-file-prescription"></i> Generate E-Prescription
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+// Student Lookup
+async function lookupStudent() {
+    const studentId = document.getElementById('studentId').value.trim();
+    if (!studentId) {
+        alert('Please enter a Student ID');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/doctor/api/student-lookup/?student_id=${studentId}`);
+        const data = await response.json();
+
+        if (data.success) {
+            document.getElementById('studentName').value = data.student.name;
+            document.getElementById('studentAge').value = data.student.age;
+            document.getElementById('studentSex').value = data.student.sex;
+            document.getElementById('studentCourse').value = data.student.course;
+            document.getElementById('studentInfo').style.display = 'block';
+        } else {
+            alert(data.error || 'Student not found');
+            document.getElementById('studentInfo').style.display = 'none';
+        }
+    } catch (error) {
+        alert('Error looking up student');
+        console.error(error);
+    }
+}
+
+// Add Medicine Row
+function addMedicine() {
+    const container = document.getElementById('medicineContainer');
+    const newRow = document.createElement('div');
+    newRow.className = 'medicine-row';
+    newRow.style.cssText = 'display: grid; grid-template-columns: 2fr 0.8fr 0.7fr 1fr auto; gap: 10px; margin-bottom: 15px; align-items: end;';
+    newRow.innerHTML = `
+        <div class="form-group" style="margin-bottom: 0;">
+            <input type="text" class="form-control medicine-name" placeholder="e.g., Paracetamol 500mg" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <input type="number" class="form-control medicine-quantity" placeholder="1" min="1" value="1" required>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <select class="form-control medicine-unit" required>
+                <option value="tab">tab</option>
+                <option value="caps">caps</option>
+                <option value="ml">ml</option>
+                <option value="mg">mg</option>
+                <option value="pc">pc</option>
+                <option value="pcs">pcs</option>
+                <option value="drops">drops</option>
+                <option value="tbsp">tbsp</option>
+                <option value="tsp">tsp</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <select class="form-control medicine-frequency" required>
+                <option value="1x a day">1x a day</option>
+                <option value="2x a day">2x a day</option>
+                <option value="3x a day">3x a day</option>
+                <option value="4x a day">4x a day</option>
+                <option value="Every 4 hours">Every 4 hours</option>
+                <option value="Every 6 hours">Every 6 hours</option>
+                <option value="Every 8 hours">Every 8 hours</option>
+                <option value="Before meals">Before meals</option>
+                <option value="After meals">After meals</option>
+                <option value="As needed">As needed</option>
+            </select>
+        </div>
+        <div>
+            <button type="button" class="btn-remove" onclick="removeMedicine(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(newRow);
+    updateRemoveButtons();
+}
+
+// Remove Medicine Row
+function removeMedicine(button) {
+    button.closest('.medicine-row').remove();
+    updateRemoveButtons();
+}
+
+// Update Remove Buttons Visibility
+function updateRemoveButtons() {
+    const rows = document.querySelectorAll('.medicine-row');
+    rows.forEach((row, index) => {
+        const removeBtn = row.querySelector('.btn-remove');
+        if (rows.length > 1) {
+            removeBtn.style.display = 'block';
+        } else {
+            removeBtn.style.display = 'none';
+        }
+    });
+}
+
+// Form Submission - Collect Medicines
+document.getElementById('prescriptionForm').addEventListener('submit', function(e) {
+    const medicines = [];
+    document.querySelectorAll('.medicine-row').forEach(row => {
+        const name = row.querySelector('.medicine-name').value;
+        const quantity = row.querySelector('.medicine-quantity').value;
+        const unit = row.querySelector('.medicine-unit').value;
+        const frequency = row.querySelector('.medicine-frequency').value;
+        medicines.push(`${name} - ${quantity} ${unit} - ${frequency}`);
+    });
+    
+    // Create hidden input for medications
+    const medicationsInput = document.createElement('input');
+    medicationsInput.type = 'hidden';
+    medicationsInput.name = 'medications';
+    medicationsInput.value = medicines.join('\n');
+    this.appendChild(medicationsInput);
+});
+
+// Enter key on Student ID
+document.getElementById('studentId').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        lookupStudent();
+    }
+});
+</script>
+{% endblock %}
